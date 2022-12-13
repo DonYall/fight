@@ -24,6 +24,8 @@ public class App extends JFrame {
     private int p2Direction = -1;
     private int gun1Index = 0;
     private int gun2Index = 0;
+    private int finger1Index = 0;
+    private int finger2Index = 0;
     private final int floor;
     private final JPanel gamePanel;
     private Timer repaintTimer;
@@ -56,6 +58,12 @@ public class App extends JFrame {
         BufferedImage bufferedMichelleF = ImageIO.read(getClass().getResource("mkF.png"));
         Image michelleIMGF = bufferedMichelleF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
+        BufferedImage bufferedFinger = ImageIO.read(getClass().getResource("finger.png"));
+        Image fingerIMG = bufferedFinger.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
+
+        BufferedImage bufferedFingerF = ImageIO.read(getClass().getResource("fingerF.png"));
+        Image fingerIMGF = bufferedFingerF.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
+
         // Gun (322 x 263) x 13
         // Gun origin: (160, 130)
         BufferedImage bufferedGun = ImageIO.read(getClass().getResource("gun.png"));
@@ -82,10 +90,16 @@ public class App extends JFrame {
                     if (p1.isShooting) {
                         g2d.drawImage(gunIMGF[gun1Index/3], (int) ((p1.x-40)*multiplier), (int) ((p1.y+20)*multiplier), null);
                     }
+                    if (p1.isFingering) {
+                        g2d.drawImage(fingerIMGF, (int) ((p1.x-10)*multiplier), (int) ((p1.y+40)*multiplier), null);
+                    }
                 } else {
                     g2d.drawImage(ryanpogIMGF, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
                     if (p1.isShooting) {
                         g2d.drawImage(gunIMG[gun1Index/3], (int) ((p1.x+50)*multiplier), (int) ((p1.y+20)*multiplier), null);
+                    }
+                    if (p1.isFingering) {
+                        g2d.drawImage(fingerIMG, (int) ((p1.x+60)*multiplier), (int) ((p1.y+40)*multiplier), null);
                     }
                 }
                 if (p2Direction == +1) {
@@ -93,16 +107,25 @@ public class App extends JFrame {
                     if (p2.isShooting) {
                         g2d.drawImage(gunIMG[gun2Index/3], (int) ((p2.x+50)*multiplier), (int) ((p2.y+20)*multiplier), null);
                     }
+                    if (p2.isFingering) {
+                        g2d.drawImage(fingerIMG, (int) ((p2.x+60)*multiplier), (int) ((p2.y+40)*multiplier), null);
+                    }
                 } else {
                     g2d.drawImage(michelleIMG, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
                     if (p2.isShooting) {
                         g2d.drawImage(gunIMGF[gun2Index/3], (int) ((p2.x-40)*multiplier), (int) ((p2.y+20)*multiplier), null);
+                    }
+                    if (p2.isFingering) {
+                        g2d.drawImage(fingerIMGF, (int) ((p2.x-10)*multiplier), (int) ((p2.y+40)*multiplier), null);
                     }
                 }
 
                 // Show gun hitboxes
                 //g2d.fillRect((int)((p1.x+33)*multiplier), (int)((p1.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier));
                 //g2d.fillRect((int)((p2.x+33)*multiplier), (int)((p2.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier)); 
+                // Show player hitboxes
+                //g2d.drawOval((int) ((p1.x)*multiplier), (int) ((p1.y)*multiplier), (int) (2*p1.hitboxRadius*multiplier), (int) (2*p1.hitboxRadius*multiplier));
+                //g2d.drawOval((int) ((p2.x)*multiplier), (int) ((p2.y)*multiplier), (int) (2*p2.hitboxRadius*multiplier), (int) (2*p2.hitboxRadius*multiplier));
 
                 // Health bars
                 g2d.fillRect((int)(20*multiplier), (int)(20*multiplier), (int)(p1.currentHP*(300/p1.maxHP)*multiplier), (int)(25*multiplier));
@@ -120,6 +143,7 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, true), "released.d");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0, false), "pressed.w");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "pressed.g");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0, false), "pressed.t");
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "pressed.left");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "pressed.right");
@@ -127,6 +151,7 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "released.right");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, false), "pressed.up");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0, false), "pressed.l");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0, false), "pressed.o");
 
         am.put("pressed.a", new MoveAction(1, -1, true));
         am.put("pressed.d", new MoveAction(1, +1, true));
@@ -147,6 +172,14 @@ public class App extends JFrame {
                     p1.isShooting = true;
                     p1Keys.put(+1, false);
                     p1Keys.put(-1, false);
+                }
+            }
+        });
+        am.put("pressed.t", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!p1.isShooting && !p1.isDisabled && !p1.isFingering) {
+                    p1.isFingering = true;
                 }
             }
         });
@@ -173,6 +206,14 @@ public class App extends JFrame {
                 }
             }
         });
+        am.put("pressed.o", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!p1.isShooting && !p1.isDisabled && !p1.isFingering) {
+                    p2.isFingering = true;
+                }
+            }
+        });
 
         add(gamePanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -186,6 +227,7 @@ public class App extends JFrame {
                 p1.move(p1Movement);
                 p2.move(p2Movement);
 
+                // Shoot gun
                 if (p1.isShooting) {
                     gun1Index++;
                     if (gun1Index == 39) {
@@ -205,8 +247,6 @@ public class App extends JFrame {
                             }
                         }        
                     }
-                } else {
-
                 }
                 if (p2.isShooting) {
                     gun2Index++;
@@ -227,8 +267,35 @@ public class App extends JFrame {
                             } 
                         }
                     }
-                } else {
-                    
+                }
+
+                // Finger
+                if (finger1Index == 10) {
+                    finger1Index = 0;
+                    p1.isFingering = false;
+                }
+                if (finger2Index == 10) {
+                    finger2Index = 0;
+                    p2.isFingering = false;
+                }
+                // Player-Player collisions
+                if (p1.isFingering) {
+                    finger1Index++;
+                    if (finger1Index == 1) {
+                        if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
+                            p2.hit(-10);
+                            p2Movement = 0;
+                        }
+                    }
+                }
+                if (p2.isFingering) {
+                    finger2Index++;
+                    if (finger2Index == 1) {
+                        if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
+                            p1.hit(-10);
+                            p1Movement = 0;
+                        }
+                    }
                 }
 
                 repaint();

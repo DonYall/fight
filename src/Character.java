@@ -7,13 +7,14 @@ public class Character {
     private boolean cosJumping;
     private boolean circularJumping;
     boolean isShooting = false;
+    boolean isFingering = false;
     boolean isDisabled = false;
     private final double GRAVITY = 0.7;
     private double yVelocity = 0;
     int x;
     int y;
     int velocity;
-
+    int hitboxRadius = 35;
 
     public Character(String name, int x, int y) {
         this.name = name;
@@ -85,12 +86,16 @@ public class Character {
         }
     }
 
+    public int[] getHitboxCenter(int width, int height) {
+        return (new int[] {(int) (x + width/2), (int) (y + height/2)});
+    }
+
     public void init() {
         if (name.equals("michael")) {
             maxHP = 250;
             velocity = 5;
         } else if (name.equals("ryan")) {
-            maxHP = 125;
+            maxHP = 175;
             velocity = 7;
         } else if (name.equals("anita")) {
             maxHP = 125;
