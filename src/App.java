@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
+import java.nio.Buffer;
 import java.awt.image.*;
 
 import javax.imageio.ImageIO;
@@ -16,13 +17,19 @@ public class App extends JFrame {
     private String p1Name;
     private String p2Name;
     private Map<Integer, Boolean> p1Keys = new HashMap<>();
-    private int p1Movement = 0;
     private Map<Integer, Boolean> p2Keys = new HashMap<>();
+    private int p1Movement = 0;
     private int p2Movement = 0;
+    private int p1Direction = +1;
+    private int p2Direction = -1;
+    private int gun1Index = 0;
+    private int gun2Index = 0;
     private final int floor;
     private final JPanel gamePanel;
     private Timer repaintTimer;
     public App(String p1Name, String p2Name, double multiplier) throws IOException {
+        this.p1Name = p1Name;
+        this.p2Name = p2Name;
         p1Keys.put(1, false);
         p1Keys.put(-1, false);
         p2Keys.put(1, false);
@@ -43,6 +50,26 @@ public class App extends JFrame {
         BufferedImage bufferedMichelle = ImageIO.read(getClass().getResource("mk.png"));
         Image michelleIMG = bufferedMichelle.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
+        BufferedImage bufferedRyanPogF = ImageIO.read(getClass().getResource("ryanpogF.png"));
+        Image ryanpogIMGF = bufferedRyanPogF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+
+        BufferedImage bufferedMichelleF = ImageIO.read(getClass().getResource("mkF.png"));
+        Image michelleIMGF = bufferedMichelleF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+
+        // Gun (322 x 263) x 13
+        // Gun origin: (160, 130)
+        BufferedImage bufferedGun = ImageIO.read(getClass().getResource("gun.png"));
+        BufferedImage bufferedGunF = ImageIO.read(getClass().getResource("gunF.png"));
+        Image[] gunIMG = new Image[13];
+        Image[] gunIMGF = new Image[13];
+
+        for (int i = 0; i < 13; i++) {
+            gunIMG[i] = bufferedGun.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
+        }
+        for (int i = 12; i >= 0; i--) {
+            gunIMGF[12-i] = bufferedGunF.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
+        }
+
         // Game Panel
         gamePanel = new JPanel() {
             @Override
@@ -50,8 +77,37 @@ public class App extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.drawImage(bgImage, 0, 0, this);
-                g2d.drawImage(ryanpogIMG, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
-                g2d.drawImage(michelleIMG, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
+                if (p1Direction == -1) {
+                    g2d.drawImage(ryanpogIMG, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
+                    if (p1.isShooting) {
+                        g2d.drawImage(gunIMGF[gun1Index/3], (int) ((p1.x-40)*multiplier), (int) ((p1.y+20)*multiplier), null);
+                    }
+                } else {
+                    g2d.drawImage(ryanpogIMGF, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
+                    if (p1.isShooting) {
+                        g2d.drawImage(gunIMG[gun1Index/3], (int) ((p1.x+50)*multiplier), (int) ((p1.y+20)*multiplier), null);
+                    }
+                }
+                if (p2Direction == +1) {
+                    g2d.drawImage(michelleIMGF, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
+                    if (p2.isShooting) {
+                        g2d.drawImage(gunIMG[gun2Index/3], (int) ((p2.x+50)*multiplier), (int) ((p2.y+20)*multiplier), null);
+                    }
+                } else {
+                    g2d.drawImage(michelleIMG, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
+                    if (p2.isShooting) {
+                        g2d.drawImage(gunIMGF[gun2Index/3], (int) ((p2.x-40)*multiplier), (int) ((p2.y+20)*multiplier), null);
+                    }
+                }
+
+                // Show gun hitboxes
+                //g2d.fillRect((int)((p1.x+33)*multiplier), (int)((p1.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier));
+                //g2d.fillRect((int)((p2.x+33)*multiplier), (int)((p2.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier)); 
+
+                // Health bars
+                g2d.fillRect((int)(20*multiplier), (int)(20*multiplier), (int)(p1.currentHP*(300/p1.maxHP)*multiplier), (int)(25*multiplier));
+                g2d.fillRect((int)((800-300+20)*multiplier), (int)(20*multiplier), (int)(p2.currentHP*(300/p2.maxHP)*multiplier), (int)(25*multiplier));
+
                 g2d.dispose();
             }
         };
@@ -63,12 +119,14 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, true), "released.a");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, true), "released.d");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0, false), "pressed.w");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "pressed.g");
 
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "pressed.left");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "pressed.right");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "released.left");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, true), "released.right");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0, false), "pressed.up");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0, false), "pressed.l");
 
         am.put("pressed.a", new MoveAction(1, -1, true));
         am.put("pressed.d", new MoveAction(1, +1, true));
@@ -77,7 +135,19 @@ public class App extends JFrame {
         am.put("pressed.w", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                p1.jump();
+                if (!p1.isShooting && !p1.isDisabled) {
+                    p1.jump();
+                }
+            }
+        });
+        am.put("pressed.g", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!p1.isShooting && !p1.isDisabled) {
+                    p1.isShooting = true;
+                    p1Keys.put(+1, false);
+                    p1Keys.put(-1, false);
+                }
             }
         });
 
@@ -88,7 +158,19 @@ public class App extends JFrame {
         am.put("pressed.up", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                p2.sinusoidalJump();
+                if (!p2.isShooting && !p2.isDisabled) {
+                    p2.jump();
+                }
+            }
+        });
+        am.put("pressed.l", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!p2.isShooting && !p2.isDisabled) {
+                    p2.isShooting = true;
+                    p2Keys.put(+1, false);
+                    p2Keys.put(-1, false);
+                }
             }
         });
 
@@ -97,14 +179,73 @@ public class App extends JFrame {
         setSize((int) (800*multiplier), (int) (400*multiplier));
         setUndecorated(true);
         setVisible(true);
-        repaintTimer = new Timer(16, new ActionListener() {
+        repaintTimer = new Timer(0, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                long start = System.nanoTime();
                 p1.move(p1Movement);
                 p2.move(p2Movement);
 
+                if (p1.isShooting) {
+                    gun1Index++;
+                    if (gun1Index == 39) {
+                        gun1Index = 0;
+                        p1.isShooting = false;
+                        p1Movement = 0;
+                    } else if (gun1Index == 24) {
+                        if (p1Direction == -1) {
+                            if ((p1Direction*((p2.x+35)-(p1.x-40+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
+                                p2.hit(-10);
+                                p2Movement = 0;
+                            }
+                        } else {
+                            if ((p1Direction*((p2.x+35)-(p1.x+50+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
+                                p2.hit(-10);
+                                p2Movement = 0;
+                            }
+                        }        
+                    }
+                } else {
+
+                }
+                if (p2.isShooting) {
+                    gun2Index++;
+                    if (gun2Index == 39) {
+                        gun2Index = 0;
+                        p2.isShooting = false;
+                        p2Movement = 0;
+                    } else if (gun2Index == 24) {
+                        if (p2Direction == +1) {
+                            if ((p2Direction*((p1.x+35)-(p2.x+50+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
+                                p1.hit(-10);
+                                p1Movement = 0;
+                            }
+                        } else {
+                            if ((p2Direction*((p1.x+35)-(p2.x-40+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
+                                p1.hit(-10);
+                                p1Movement = 0;
+                            } 
+                        }
+                    }
+                } else {
+                    
+                }
+
                 repaint();
                 revalidate();
+                
+                long elapsed = System.nanoTime() - start;
+                long wait = 16 - elapsed/1000000;
+
+                if (wait <= 0) {
+                    wait = 5;
+                }
+
+                try {
+                    Thread.sleep(wait);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
             }
         });
         repaintTimer.setInitialDelay(0);
@@ -128,14 +269,19 @@ public class App extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (pressed) {
                 if (playerID == 1) {
+                    if (p1.isShooting || p1.isDisabled) return;
                     p1Movement = direction;
+                    p1Direction = direction;
                     p1Keys.put(direction, true);
                 } else {
+                    if (p2.isShooting || p2.isDisabled) return;
                     p2Movement = direction;
+                    p2Direction = direction;
                     p2Keys.put(direction, true);
                 }
             } else {
                 if (playerID == 1) {
+                    if (p1.isShooting || p1.isDisabled) return;
                     p1Keys.put(direction, false);
                     if (!p1Keys.get(-direction)) {
                         p1Movement = 0;
@@ -143,6 +289,7 @@ public class App extends JFrame {
                         p1Movement = -direction;
                     }
                 } else {
+                    if (p2.isShooting || p2.isDisabled) return;
                     p2Keys.put(direction, false);
                     if (!p2Keys.get(-direction)) {
                         p2Movement = 0;

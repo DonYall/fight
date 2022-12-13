@@ -1,11 +1,13 @@
 public class Character {
     String name;
     int maxHP;
-    private int currentHP;
+    int currentHP;
     private int player;
     private boolean isJumping;
     private boolean cosJumping;
     private boolean circularJumping;
+    boolean isShooting = false;
+    boolean isDisabled = false;
     private final double GRAVITY = 0.7;
     private double yVelocity = 0;
     int x;
@@ -22,10 +24,15 @@ public class Character {
 
     public void hit(int hp) {
         currentHP += hp;
+        isJumping = false;
+        isDisabled = true;
+        yVelocity = 12;
     }
 
     public void move(int direction) {
-        x += velocity*direction;
+        if (!isShooting) {
+            x += velocity*direction;
+        }
         if (isJumping) {
             yVelocity -= GRAVITY;
             y -= (int)yVelocity;
@@ -41,12 +48,19 @@ public class Character {
                 y = 200;
             }
         } else if (circularJumping) {
-            y = 200 - (int) (8*Math.sqrt(-Math.pow(yVelocity-20, 2)+400));
+            y = 200 - (int) (8*Math.sqrt(-Math.pow(yVelocity-10, 2)+100));
             yVelocity++;
-            if (yVelocity >= 40) {
+            if (yVelocity >= 20) {
                 circularJumping = false;
                 y = 200;
             }
+        } else if (isDisabled) {
+            yVelocity -= 1.2;
+            y -= (int)yVelocity;
+            if (y >= 200) {
+                y = 200;
+                isDisabled = false;
+            }     
         }
     }
 
