@@ -65,6 +65,7 @@ public class Character {
         }
     }
 
+    // Realistic quadratic jump
     public void jump() {
         if (!isJumping) {
             isJumping = true;
@@ -72,6 +73,7 @@ public class Character {
         }
     }
 
+    // Sinusoidal jump
     public void sinusoidalJump() {
         if (!cosJumping) {
             cosJumping = true;
@@ -79,6 +81,7 @@ public class Character {
         }
     }
 
+    // Circular jump
     public void circularJump() {
         if (!circularJumping) {
             circularJumping = true;
@@ -90,6 +93,7 @@ public class Character {
         return (new int[] {(int) (x + width/2), (int) (y + height/2)});
     }
 
+    // Initialize character stats
     public void init() {
         if (name.equals("michael")) {
             maxHP = 250;

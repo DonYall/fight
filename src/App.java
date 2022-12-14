@@ -11,6 +11,7 @@ import java.awt.image.*;
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 
+
 public class App extends JFrame {
     private Character p1;
     private Character p2;
@@ -84,7 +85,17 @@ public class App extends JFrame {
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(Color.BLACK.darker());
                 g2d.drawImage(bgImage, 0, 0, this);
+
+                // Draw gun tracer
+                if (gun1Index == 24) {
+                    g2d.drawLine((int) ((p1.x+35)*multiplier), (int) ((p1.y+20+20)*multiplier), (int) ((400 + 400*p1Direction)*multiplier), (int) ((p1.y+20+20)*multiplier));
+                }
+                if (gun2Index == 24) {
+                    g2d.drawLine((int) ((p2.x+35)*multiplier), (int) ((p2.y+20+20)*multiplier), (int) ((400 + 400*p2Direction)*multiplier), (int) ((p2.y+20+20)*multiplier));
+                }
+
                 if (p1Direction == -1) {
                     g2d.drawImage(ryanpogIMG, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
                     if (p1.isShooting) {
@@ -137,6 +148,7 @@ public class App extends JFrame {
         InputMap im = gamePanel.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = gamePanel.getActionMap();
 
+        // Player 1 inputs
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, false), "pressed.a");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0, false), "pressed.d");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, true), "released.a");
@@ -145,6 +157,7 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0, false), "pressed.g");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0, false), "pressed.t");
 
+        // Player 2 inputs
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, false), "pressed.left");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0, false), "pressed.right");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0, true), "released.left");
@@ -153,6 +166,7 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0, false), "pressed.l");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0, false), "pressed.o");
 
+        // Player 1 actions
         am.put("pressed.a", new MoveAction(1, -1, true));
         am.put("pressed.d", new MoveAction(1, +1, true));
         am.put("released.a", new MoveAction(1, -1, false));
@@ -184,6 +198,7 @@ public class App extends JFrame {
             }
         });
 
+        // Player 2 actions
         am.put("pressed.left", new MoveAction(2, -1, true));
         am.put("pressed.right", new MoveAction(2, +1, true));
         am.put("released.left", new MoveAction(2, -1, false));
@@ -209,7 +224,7 @@ public class App extends JFrame {
         am.put("pressed.o", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!p1.isShooting && !p1.isDisabled && !p1.isFingering) {
+                if (!p2.isShooting && !p2.isDisabled && !p2.isFingering) {
                     p2.isFingering = true;
                 }
             }
@@ -270,11 +285,11 @@ public class App extends JFrame {
                 }
 
                 // Finger
-                if (finger1Index == 10) {
+                if (finger1Index == 20) {
                     finger1Index = 0;
                     p1.isFingering = false;
                 }
-                if (finger2Index == 10) {
+                if (finger2Index == 20) {
                     finger2Index = 0;
                     p2.isFingering = false;
                 }
