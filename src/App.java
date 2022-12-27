@@ -3,6 +3,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.net.URL;
 import java.nio.Buffer;
@@ -13,12 +14,19 @@ import javax.sound.sampled.*;
 
 
 public class App extends JFrame {
+    private final double multiplier;
     private Character p1;
     private Character p2;
     private String p1Name;
     private String p2Name;
     private Map<Integer, Boolean> p1Keys = new HashMap<>();
     private Map<Integer, Boolean> p2Keys = new HashMap<>();
+    private boolean p1Cutscene = false;
+    private boolean p2Cutscene = false;
+    private double p1CutsceneVelocity = 0.2;
+    private double p2CutsceneVelocity = 0.2;
+    private double p1CutsceneScale = 1;
+    private double p2CutsceneScale = 1;
     private int p1Movement = 0;
     private int p2Movement = 0;
     private int p1Direction = +1;
@@ -29,8 +37,14 @@ public class App extends JFrame {
     private int finger2Index = 0;
     private final int floor;
     private final JPanel gamePanel;
+    private double accelerator = 0.1;
+    private double p1Velocitator = 0;
+    private double p1Rotator = 0;
+    private double p2Velocitator = 0;
+    private double p2Rotator = 0;
     private Timer repaintTimer;
     public App(String p1Name, String p2Name, double multiplier) throws IOException {
+        this.multiplier = multiplier;
         this.p1Name = p1Name;
         this.p2Name = p2Name;
         p1Keys.put(1, false);
@@ -41,22 +55,24 @@ public class App extends JFrame {
         floor = (int) ((7*multiplier) / 8);
         p1 = new Character(p1Name, 100, 200);
         p2 = new Character(p2Name, 600, 200);
+        p1.opponent = p2;
+        p2.opponent = p1;
 
         // Background image
         BufferedImage bufferedBG = ImageIO.read(getClass().getResource("bg.jpg"));
         Image bgImage = bufferedBG.getScaledInstance((int) (800*multiplier), (int) (400*multiplier), BufferedImage.SCALE_SMOOTH);
-        
+
         // Character images
-        BufferedImage bufferedRyanPog = ImageIO.read(getClass().getResource("ryanpog.png"));
+        BufferedImage bufferedRyanPog = ImageIO.read(getClass().getResource(p1Name + ".png"));
         Image ryanpogIMG = bufferedRyanPog.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
-        BufferedImage bufferedMichelle = ImageIO.read(getClass().getResource("mk.png"));
+        BufferedImage bufferedMichelle = ImageIO.read(getClass().getResource(p2Name + ".png"));
         Image michelleIMG = bufferedMichelle.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
-        BufferedImage bufferedRyanPogF = ImageIO.read(getClass().getResource("ryanpogF.png"));
+        BufferedImage bufferedRyanPogF = ImageIO.read(getClass().getResource(p1Name + "F.png"));
         Image ryanpogIMGF = bufferedRyanPogF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
-        BufferedImage bufferedMichelleF = ImageIO.read(getClass().getResource("mkF.png"));
+        BufferedImage bufferedMichelleF = ImageIO.read(getClass().getResource(p2Name + "F.png"));
         Image michelleIMGF = bufferedMichelleF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
 
         BufferedImage bufferedFinger = ImageIO.read(getClass().getResource("finger.png"));
@@ -85,7 +101,19 @@ public class App extends JFrame {
             public void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
+
                 g2d.setColor(Color.BLACK.darker());
+                if (p1Cutscene) {
+                    p1CutsceneScale += p1CutsceneVelocity;
+                    g2d.translate(68*multiplier, 217*multiplier);
+                    g2d.scale(p1CutsceneScale, p1CutsceneScale);
+                    g2d.translate(-68*multiplier, -217*multiplier);
+                } else if (p2Cutscene) {
+                    p2CutsceneScale += p2CutsceneVelocity;
+                    g2d.translate(650*multiplier, 217*multiplier);
+                    g2d.scale(p2CutsceneScale, p2CutsceneScale);
+                    g2d.translate(-660*multiplier, -217*multiplier);
+                }
                 g2d.drawImage(bgImage, 0, 0, this);
 
                 // Draw gun tracer
@@ -97,7 +125,7 @@ public class App extends JFrame {
                 }
 
                 if (p1Direction == -1) {
-                    g2d.drawImage(ryanpogIMG, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
+                    drawCharacter(g2d, p1, ryanpogIMG);
                     if (p1.isShooting) {
                         g2d.drawImage(gunIMGF[gun1Index/3], (int) ((p1.x-40)*multiplier), (int) ((p1.y+20)*multiplier), null);
                     }
@@ -105,7 +133,7 @@ public class App extends JFrame {
                         g2d.drawImage(fingerIMGF, (int) ((p1.x-10)*multiplier), (int) ((p1.y+40)*multiplier), null);
                     }
                 } else {
-                    g2d.drawImage(ryanpogIMGF, (int) (p1.x*multiplier), (int) (p1.y*multiplier), null);
+                    drawCharacter(g2d, p1, ryanpogIMGF);
                     if (p1.isShooting) {
                         g2d.drawImage(gunIMG[gun1Index/3], (int) ((p1.x+50)*multiplier), (int) ((p1.y+20)*multiplier), null);
                     }
@@ -114,7 +142,7 @@ public class App extends JFrame {
                     }
                 }
                 if (p2Direction == +1) {
-                    g2d.drawImage(michelleIMGF, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
+                    drawCharacter(g2d, p2, michelleIMGF);
                     if (p2.isShooting) {
                         g2d.drawImage(gunIMG[gun2Index/3], (int) ((p2.x+50)*multiplier), (int) ((p2.y+20)*multiplier), null);
                     }
@@ -122,7 +150,7 @@ public class App extends JFrame {
                         g2d.drawImage(fingerIMG, (int) ((p2.x+60)*multiplier), (int) ((p2.y+40)*multiplier), null);
                     }
                 } else {
-                    g2d.drawImage(michelleIMG, (int) (p2.x*multiplier), (int) (p2.y*multiplier), null);
+                    drawCharacter(g2d, p2, michelleIMG);
                     if (p2.isShooting) {
                         g2d.drawImage(gunIMGF[gun2Index/3], (int) ((p2.x-40)*multiplier), (int) ((p2.y+20)*multiplier), null);
                     }
@@ -132,15 +160,20 @@ public class App extends JFrame {
                 }
 
                 // Show gun hitboxes
-                //g2d.fillRect((int)((p1.x+33)*multiplier), (int)((p1.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier));
-                //g2d.fillRect((int)((p2.x+33)*multiplier), (int)((p2.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier)); 
-                // Show player hitboxes
-                //g2d.drawOval((int) ((p1.x)*multiplier), (int) ((p1.y)*multiplier), (int) (2*p1.hitboxRadius*multiplier), (int) (2*p1.hitboxRadius*multiplier));
-                //g2d.drawOval((int) ((p2.x)*multiplier), (int) ((p2.y)*multiplier), (int) (2*p2.hitboxRadius*multiplier), (int) (2*p2.hitboxRadius*multiplier));
+                // g2d.fillRect((int)((p1.x+33)*multiplier), (int)((p1.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier));
+                // g2d.fillRect((int)((p2.x+33)*multiplier), (int)((p2.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier)); 
+                // Show player hitboxes(int) (p1.x*multiplier), (int) (p1.y*multiplier), null
+                // g2d.drawOval((int) ((p1.x)*multiplier), (int) ((p1.y)*multiplier), (int) (2*p1.hitboxRadius*multiplier), (int) (2*p1.hitboxRadius*multiplier));
+                // g2d.drawOval((int) ((p2.x)*multiplier), (int) ((p2.y)*multiplier), (int) (2*p2.hitboxRadius*multiplier), (int) (2*p2.hitboxRadius*multiplier));
 
                 // Health bars
                 g2d.fillRect((int)(20*multiplier), (int)(20*multiplier), (int)(p1.currentHP*(300/p1.maxHP)*multiplier), (int)(25*multiplier));
-                g2d.fillRect((int)((800-300+20)*multiplier), (int)(20*multiplier), (int)(p2.currentHP*(300/p2.maxHP)*multiplier), (int)(25*multiplier));
+                g2d.fillRect((int)((800-300-20)*multiplier), (int)(20*multiplier), (int)(p2.currentHP*(300/p2.maxHP)*multiplier), (int)(25*multiplier));
+                // Super progress bars
+                g2d.drawRect((int)(20*multiplier), (int)(50*multiplier), (int)(300*multiplier), (int)(10*multiplier));
+                g2d.drawRect((int)((800-300-20)*multiplier), (int)(50*multiplier), (int)(300*multiplier), (int)(10*multiplier));
+                g2d.fillRect((int)(20*multiplier), (int)(50*multiplier), (int)(p1.superProgress*(3)*multiplier), (int)(10*multiplier));
+                g2d.fillRect((int)((800-300-20)*multiplier), (int)(50*multiplier), (int)(p2.superProgress*(3)*multiplier), (int)(10*multiplier));
 
                 g2d.dispose();
             }
@@ -239,8 +272,27 @@ public class App extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 long start = System.nanoTime();
-                p1.move(p1Movement);
-                p2.move(p2Movement);
+                if (!p1Cutscene) {
+                    p1.move(p1Movement);
+                } else {
+                    p1CutsceneVelocity -= 0.005;
+                    if (p1CutsceneVelocity <= 0) {
+                        p1Cutscene = false;
+                        p1CutsceneVelocity = 0.2;
+                        p1CutsceneScale = 1;
+                    
+                    }
+                }
+                if (!p2Cutscene) {
+                    p2.move(p2Movement);
+                } else {
+                    p2CutsceneVelocity -= 0.005;
+                    if (p2CutsceneVelocity <= 0) {
+                        p2Cutscene = false;
+                        p2CutsceneVelocity = 0.2;
+                        p2CutsceneScale = 1;
+                    }
+                }
 
                 // Shoot gun
                 if (p1.isShooting) {
@@ -252,12 +304,12 @@ public class App extends JFrame {
                     } else if (gun1Index == 24) {
                         if (p1Direction == -1) {
                             if ((p1Direction*((p2.x+35)-(p1.x-40+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
-                                p2.hit(-10);
+                                p2.hit(-10, 12);
                                 p2Movement = 0;
                             }
                         } else {
                             if ((p1Direction*((p2.x+35)-(p1.x+50+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
-                                p2.hit(-10);
+                                p2.hit(-10, 12);
                                 p2Movement = 0;
                             }
                         }        
@@ -272,12 +324,12 @@ public class App extends JFrame {
                     } else if (gun2Index == 24) {
                         if (p2Direction == +1) {
                             if ((p2Direction*((p1.x+35)-(p2.x+50+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
-                                p1.hit(-10);
+                                p1.hit(-10, 12);
                                 p1Movement = 0;
                             }
                         } else {
                             if ((p2Direction*((p1.x+35)-(p2.x-40+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
-                                p1.hit(-10);
+                                p1.hit(-10, 12);
                                 p1Movement = 0;
                             } 
                         }
@@ -294,11 +346,59 @@ public class App extends JFrame {
                     p2.isFingering = false;
                 }
                 // Player-Player collisions
+                if (p1.isSupering) {
+                    if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
+                        p2.hit((int)(-40.0-p1Velocitator), 7);
+                        p1.hit(0, 7);
+                        p2Movement = 0;
+                        p1.isSupering = false;
+                        p1.superProgress = 0;
+                        p1Velocitator = 0;
+                        p1Rotator = 0;
+                    }
+                } else if (!p1Cutscene && !p2Cutscene) {
+                    p1.superProgress += 0.05;
+                    if (p1.superProgress >= 100) {
+                        p1.isSupering = true;
+                        p1Cutscene = true;
+                        p1.x = 100;
+                        p2.x = 600;
+                        p1.y = 200;
+                        p2.y = 200;
+                        p1.isDisabled = true;
+                        p2.isDisabled = true;
+                        p1.superProgress = 0;
+                    }
+                }
+                if (p2.isSupering) {
+                    if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
+                        p1.hit(-40, 7);
+                        p2.hit(0, 7);
+                        p1Movement = 0;
+                        p2.isSupering = false;
+                        p2.superProgress = 0;
+                        p2Velocitator = 0;
+                        p2Rotator = 0;
+                    }
+                } else if (!p1Cutscene && !p2Cutscene) {
+                    p2.superProgress += 0.05;
+                    if (p2.superProgress >= 100) {
+                        p2.isSupering = true;
+                        p2Cutscene = true;
+                        p1.x = 100;
+                        p2.x = 600;
+                        p1.y = 200;
+                        p2.y = 200;
+                        p1.isDisabled = true;
+                        p2.isDisabled = true;
+                        p2.superProgress = 0;
+                    }
+                }
                 if (p1.isFingering) {
                     finger1Index++;
                     if (finger1Index == 1) {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                            p2.hit(-10);
+                            p2.hit(-10, 7);
                             p2Movement = 0;
                         }
                     }
@@ -307,7 +407,7 @@ public class App extends JFrame {
                     finger2Index++;
                     if (finger2Index == 1) {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                            p1.hit(-10);
+                            p1.hit(-10, 7);
                             p1Movement = 0;
                         }
                     }
@@ -329,7 +429,7 @@ public class App extends JFrame {
                     e1.printStackTrace();
                 }
             }
-        });
+        }); 
         repaintTimer.setInitialDelay(0);
         repaintTimer.setRepeats(true);
         repaintTimer.setCoalesce(true);
@@ -381,11 +481,38 @@ public class App extends JFrame {
                 }
             }
         }
-        
     }
 
+    public void drawCharacter(Graphics2D g2d, Character p, Image i) {
+        if (p.isSupering) {
+            if (p == p1) {
+                // Ryan super
+                AffineTransform currentTransform = g2d.getTransform();
+                p1Velocitator += accelerator;
+                p1Rotator += p1Velocitator;
+                g2d.translate((int) ((p.x+35)*multiplier), (int) ((p.y+35)*multiplier));
+                g2d.rotate(Math.toRadians(p1Rotator));
+                g2d.drawImage(i, (int) -(35*multiplier), (int) -(35*multiplier), null);
+                g2d.setTransform(currentTransform);
+            } else {
+                // Ryan super
+                AffineTransform currentTransform = g2d.getTransform();
+                p2Velocitator += accelerator;
+                p2Rotator += p2Velocitator;
+                g2d.translate((int) ((p.x+35)*multiplier), (int) ((p.y+35)*multiplier));
+                g2d.rotate(Math.toRadians(p2Rotator));
+                g2d.drawImage(i, (int) -(35*multiplier), (int) -(35*multiplier), null);
+                g2d.setTransform(currentTransform);
+            }
+            if (p.velocity < 30) {
+                p.velocity += (accelerator/10);
+            }
+        } else {
+            g2d.drawImage(i, (int) (p.x*multiplier), (int) (p.y*multiplier), null);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
-        new App("ryan", "michael", 1.5);
+        new App("andrew", "ryanpog", 1.7);
     }
 }
