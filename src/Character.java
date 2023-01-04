@@ -34,6 +34,7 @@ public class Character {
         if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 2;
         currentHP += hp;
         isJumping = false;
+        circularJumping = false;
         isDisabled = true;
         yVelocity = iVelocity;
         if (currentHP <= 0) {
@@ -42,27 +43,17 @@ public class Character {
             isDisabled = true;
             isLost = true;
         } else {
-            if (isSupering != Supers.ANDREW_SUPER) {
+            if (isSupering == 0) {
                 superProgress -= hp/3;
             }
-            if (opponent.isSupering != Supers.ANDREW_SUPER) {
+            if (opponent.isSupering == 0) {
                 opponent.superProgress -= hp;
             }
             if (superProgress >= 100) {
-                isSupering = SUPER;
-                if (isSupering == Supers.ANDREW_SUPER) {
-                    superProgress = 100;
-                } else {
-                    superProgress = 0;
-                }
+                superProgress = 99.95;
             }
             if (opponent.superProgress >= 100) {
-                opponent.isSupering = opponent.SUPER;
-                if (opponent.isSupering == Supers.ANDREW_SUPER) {
-                    opponent.superProgress = 100;
-                } else {
-                    opponent.superProgress = 0;
-                }
+                opponent.superProgress = 99.95;
             }
         }
     }
@@ -157,6 +148,13 @@ public class Character {
             maxHP = 175;
             velocity = 5;
             SUPER = Supers.DON_SUPER;
+        } else if (name.equals("deev")) {
+            maxHP = 150;
+            velocity = 6;
+            SUPER = Supers.DEEV_SUPER;
+        } else if (name.equals("deev ai")) {
+            maxHP = 2000;
+            velocity = 5 + Math.random()*11;
         }
         currentHP = maxHP;
     }

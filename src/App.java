@@ -5,8 +5,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.io.*;
-import java.net.URL;
-import java.nio.Buffer;
 import java.awt.image.*;
 
 import javax.imageio.ImageIO;
@@ -16,8 +14,6 @@ public class App extends JFrame {
     private final double multiplier;
     private Character p1;
     private Character p2;
-    private String p1Name;
-    private String p2Name;
     private Map<Integer, Boolean> p1Keys = new HashMap<>();
     private Map<Integer, Boolean> p2Keys = new HashMap<>();
     private boolean p1Cutscene = false;
@@ -34,24 +30,22 @@ public class App extends JFrame {
     private int gun2Index = 0;
     private int finger1Index = 0;
     private int finger2Index = 0;
-    private final int floor;
     private final JPanel gamePanel;
     private double accelerator = 0.1;
     private double p1Velocitator = 0;
     private double p1Rotator = 0;
     private double p2Velocitator = 0;
     private double p2Rotator = 0;
+    private ArrayList<Character> p1Decoys = new ArrayList<>();
+    private ArrayList<Character> p2Decoys = new ArrayList<>();
     private Timer repaintTimer;
     public App(String p1Name, String p2Name, double multiplier) throws IOException {
         this.multiplier = multiplier;
-        this.p1Name = p1Name;
-        this.p2Name = p2Name;
         p1Keys.put(1, false);
         p1Keys.put(-1, false);
         p2Keys.put(1, false);
         p2Keys.put(-1, false);
 
-        floor = (int) ((7*multiplier) / 8);
         p1 = new Character(p1Name, 100, 200);
         p2 = new Character(p2Name, 600, 200);
         p1.opponent = p2;
@@ -131,9 +125,10 @@ public class App extends JFrame {
                     }
                 }
 
+                // Draw characters, guns, fingers
                 if (p1Direction == -1) {
                     drawCharacter(g2d, p1, ryanpogIMG);
-                    if (p1.isShooting) {
+                    if (p1.isShooting && p1.isSupering != Supers.DEEV_SUPER) {
                         g2d.drawImage(gunIMGF[gun1Index/3], (int) ((p1.x-40)*multiplier), (int) ((p1.y+20)*multiplier), null);
                     }
                     if (p1.isFingering) {
@@ -141,7 +136,7 @@ public class App extends JFrame {
                     }
                 } else {
                     drawCharacter(g2d, p1, ryanpogIMGF);
-                    if (p1.isShooting) {
+                    if (p1.isShooting && p1.isSupering != Supers.DEEV_SUPER) {
                         g2d.drawImage(gunIMG[gun1Index/3], (int) ((p1.x+50)*multiplier), (int) ((p1.y+20)*multiplier), null);
                     }
                     if (p1.isFingering) {
@@ -150,7 +145,7 @@ public class App extends JFrame {
                 }
                 if (p2Direction == +1) {
                     drawCharacter(g2d, p2, michelleIMGF);
-                    if (p2.isShooting) {
+                    if (p2.isShooting && p2.isSupering != Supers.DEEV_SUPER) {
                         g2d.drawImage(gunIMG[gun2Index/3], (int) ((p2.x+50)*multiplier), (int) ((p2.y+20)*multiplier), null);
                     }
                     if (p2.isFingering) {
@@ -158,7 +153,7 @@ public class App extends JFrame {
                     }
                 } else {
                     drawCharacter(g2d, p2, michelleIMG);
-                    if (p2.isShooting) {
+                    if (p2.isShooting && p2.isSupering != Supers.DEEV_SUPER) {
                         g2d.drawImage(gunIMGF[gun2Index/3], (int) ((p2.x-40)*multiplier), (int) ((p2.y+20)*multiplier), null);
                     }
                     if (p2.isFingering) {
@@ -166,16 +161,14 @@ public class App extends JFrame {
                     }
                 }
 
-                // Show gun hitboxes
-                // g2d.fillRect((int)((p1.x+33)*multiplier), (int)((p1.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier));
-                // g2d.fillRect((int)((p2.x+33)*multiplier), (int)((p2.y)*multiplier), (int)(4*multiplier), (int)(70*multiplier)); 
                 // Show player hitboxes(int) (p1.x*multiplier), (int) (p1.y*multiplier), null
                 // g2d.drawOval((int) ((p1.x)*multiplier), (int) ((p1.y)*multiplier), (int) (2*p1.hitboxRadius*multiplier), (int) (2*p1.hitboxRadius*multiplier));
                 // g2d.drawOval((int) ((p2.x)*multiplier), (int) ((p2.y)*multiplier), (int) (2*p2.hitboxRadius*multiplier), (int) (2*p2.hitboxRadius*multiplier));
 
                 // Health bars
-                g2d.fillRect((int)(20*multiplier), (int)(20*multiplier), (int)(p1.currentHP*(300/p1.maxHP)*multiplier), (int)(25*multiplier));
-                g2d.fillRect((int)((800-300-20)*multiplier), (int)(20*multiplier), (int)(p2.currentHP*(300/p2.maxHP)*multiplier), (int)(25*multiplier));
+                g2d.fillRect((int)(20*multiplier),           (int)(20*multiplier), (int)((300*p1.currentHP/p1.maxHP)*multiplier), (int)(25*multiplier));
+                g2d.fillRect((int)((800-300-20)*multiplier), (int)(20*multiplier), (int)((300*p2.currentHP/p2.maxHP)*multiplier), (int)(25*multiplier));
+
                 // Super progress bars
                 if (p1.currentHP > 0) {
                     g2d.drawRect((int)(20*multiplier), (int)(50*multiplier), (int)(300*multiplier), (int)(10*multiplier));
@@ -292,18 +285,33 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 long start = System.nanoTime();
                 if (!p1Cutscene) {
-                    p1.move(p1Movement);
+                    if (p2.isSupering == Supers.DEEV_SUPER) {
+                        p1.move(-p1Movement);
+                        p1Direction *= -1;
+                    } else {
+                        p1.move(p1Movement);
+                    }
+                    for (Character c : p1Decoys) {
+                        c.move(p1Movement);
+                    }
                 } else {
                     p1CutsceneVelocity -= 0.005;
                     if (p1CutsceneVelocity <= 0) {
                         p1Cutscene = false;
                         p1CutsceneVelocity = 0.2;
                         p1CutsceneScale = 1;
-                    
                     }
                 }
                 if (!p2Cutscene) {
-                    p2.move(p2Movement);
+                    if (p1.isSupering == Supers.DEEV_SUPER){
+                        p2.move(-p2Movement);
+                        p2Direction *= -1;
+                    } else {
+                        p2.move(p2Movement);
+                    }
+                    for (Character c : p2Decoys) {
+                        c.move(p2Movement);
+                    }
                 } else {
                     p2CutsceneVelocity -= 0.005;
                     if (p2CutsceneVelocity <= 0) {
@@ -328,11 +336,17 @@ public class App extends JFrame {
                             if ((p1Direction*((p2.x+35)-(p1.x-40+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
                                 p2.hit(-10, 12);
                                 p2Movement = 0;
+                            } else if (p2.isSupering == Supers.DEEV_SUPER) {
+                                p1.hit(0, 10);
+                                p1Movement = 0;
                             }
                         } else {
                             if ((p1Direction*((p2.x+35)-(p1.x+50+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
                                 p2.hit(-10, 12);
                                 p2Movement = 0;
+                            } else if (p2.isSupering == Supers.DEEV_SUPER) {
+                                p1.hit(0, 10);
+                                p1Movement = 0;
                             }
                         }        
                     }
@@ -351,12 +365,18 @@ public class App extends JFrame {
                             if ((p2Direction*((p1.x+35)-(p2.x+50+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
                                 p1.hit(-10, 12);
                                 p1Movement = 0;
+                            } else if (p1.isSupering == Supers.DEEV_SUPER) {
+                                p2.hit(0, 10);
+                                p2Movement = 0;
                             }
                         } else {
                             if ((p2Direction*((p1.x+35)-(p2.x-40+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
                                 p1.hit(-10, 12);
                                 p1Movement = 0;
-                            } 
+                            } else if (p1.isSupering == Supers.DEEV_SUPER) {
+                                p2.hit(0, 10);
+                                p2Movement = 0;
+                            }
                         }
                     }
                 }
@@ -373,10 +393,10 @@ public class App extends JFrame {
                 // Supers / Player-Player collisions
                 if (p1.isSupering == Supers.RYAN_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                        p2.hit((int)(-40.0-p1Velocitator*1.5), 7);
+                        p2.hit((int)(-p1Velocitator*2), 7);
                         // Headbutt
                         if (p2.isSupering == Supers.RYAN_SUPER) {
-                            p1.hit((int)(-40.0-p2Velocitator*1.5), 7);
+                            p1.hit((int)(-p2Velocitator*2), 7);
                         } else {
                             p1.hit(0, 7);
                         }
@@ -386,18 +406,25 @@ public class App extends JFrame {
                         p1Velocitator = 0;
                         p1Rotator = 0;
                     }
-                } else if (p1.isSupering == Supers.ANDREW_SUPER) {
+                } else if (p1.isSupering > Supers.RYAN_SUPER) {
+                    if (p1.isSupering == Supers.DEEV_SUPER) {
+                        p1Decoys.add(new Character("deev ai", randInt(p1.x-50, p1.x+50), p1.y));
+                    }
                     p1.superProgress -= 0.15;
                     if (p1.superProgress <= 0) {
                         p1.isSupering = 0;
+                        p1Decoys.clear();
                     }
                 } else if (!p1Cutscene && !p2Cutscene && p1.currentHP > 0) {
                     p1.superProgress += 0.05;
                     if (p1.superProgress >= 100) {
                         p1.isSupering = p1.SUPER;
-                        if (p2.isSupering == 0) {
-                            if (p2.superProgress >= 99.95) {
-                                p2.isSupering = p2.SUPER;
+                        if (p2.isSupering == 0 && p2.superProgress >= 99.95) {
+                            p2.isSupering = p2.SUPER;
+                            if (p2.isSupering == Supers.RYAN_SUPER) {
+                                p2.superProgress = 0;
+                            } else {
+                                p2.superProgress = 100;
                             }
                         }
                         p1Cutscene = true;
@@ -407,14 +434,14 @@ public class App extends JFrame {
                         p2.y = 200;
                         p1.isDisabled = true;
                         p2.isDisabled = true;
-                        if (p1.isSupering != Supers.ANDREW_SUPER) {
+                        if (p1.isSupering == Supers.RYAN_SUPER) {
                             p1.superProgress = 0;
                         }
                     }
                 }
                 if (p2.isSupering == Supers.RYAN_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                        p1.hit((int)(-40.0-p2Velocitator), 7);
+                        p1.hit((int)(-p2Velocitator*2), 7);
                         p2.hit(0, 7);
                         p1Movement = 0;
                         p2.isSupering = 0;
@@ -422,10 +449,14 @@ public class App extends JFrame {
                         p2Velocitator = 0;
                         p2Rotator = 0;
                     }
-                } else if (p2.isSupering == Supers.ANDREW_SUPER) {
+                } else if (p2.isSupering > Supers.RYAN_SUPER) {
+                    if (p2.isSupering == Supers.DEEV_SUPER) {
+                        p2Decoys.add(new Character("deev ai", randInt(p2.x-50, p2.x+50), p2.y));
+                    }
                     p2.superProgress -= 0.15;
                     if (p2.superProgress <= 0) {
                         p2.isSupering = 0;
+                        p2Decoys.clear();
                     }
                 } else if (!p1Cutscene && !p2Cutscene && p2.currentHP > 0) {
                     p2.superProgress += 0.05;
@@ -438,7 +469,11 @@ public class App extends JFrame {
                         p2.y = 200;
                         p1.isDisabled = true;
                         p2.isDisabled = true;
-                        p2.superProgress = 0;
+                        if (p2.isSupering == Supers.RYAN_SUPER) {
+                            p2.superProgress = 0;
+                        } else {
+                            p2.superProgress = 100;
+                        }
                     }
                 }
                 if (p1.isFingering) {
@@ -447,6 +482,9 @@ public class App extends JFrame {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
                             p2.hit(-10, 7);
                             p2Movement = 0;
+                        } else if (p2.isSupering == Supers.DEEV_SUPER) {
+                            p1.hit(0, 10);
+                            p1Movement = 0;
                         }
                     }
                 }
@@ -456,6 +494,9 @@ public class App extends JFrame {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
                             p1.hit(-10, 7);
                             p1Movement = 0;
+                        } else if (p1.isSupering == Supers.DEEV_SUPER) {
+                            p2.hit(0, 10);
+                            p2Movement = 0;
                         }
                     }
                 }
@@ -556,11 +597,26 @@ public class App extends JFrame {
             }
         } else {
             g2d.drawImage(i, (int) (p.x*multiplier), (int) (p.y*multiplier), null);
+            if (p.isSupering == Supers.DEEV_SUPER) {
+                if (p == p1) {
+                    for (Character c : p1Decoys) {
+                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null); 
+                    }
+                } else {
+                    for (Character c : p2Decoys) {
+                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null); 
+                    }
+                }
+            }
         }
+    }
+
+    public int randInt(int min, int max) {
+        return((int) (Math.random()*max)+min);
     }
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("andrew", "ryanpog", 1.7);
+        new App("deev", "andrew", 1.7);
     }
 }

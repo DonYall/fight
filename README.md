@@ -48,7 +48,9 @@ Super: andrew turns into Soldier 76. He gains aimbot with his gun for a temporar
 not yet
 
 ### deev
-not yet
+Speed: 6\
+Health: 175\
+Super: deev creates many clones of himself and hacks his opponent by reversing their controls. While his opponent is hacked, his gun is not visible when fired.
 
 ### anita
 not yet
