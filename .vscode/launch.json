@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch SelectCharacter",
+            "request": "launch",
+            "mainClass": "SelectCharacter",
+            "projectName": "fight_c83bded5"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"

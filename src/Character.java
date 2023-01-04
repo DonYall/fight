@@ -12,13 +12,16 @@ public class Character {
     boolean isFingering = false;
     boolean isDisabled = false;
     boolean isLost = false;
-    boolean isSupering = false;
+    int isSupering = 0;
     private double GRAVITY = 0.7;
     private double yVelocity = 0;
     int x;
     int y;
     double velocity;
     int hitboxRadius = 35;
+
+    // Super attacks
+    int SUPER;
 
     public Character(String name, int x, int y) {
         this.name = name;
@@ -28,6 +31,7 @@ public class Character {
     }
 
     public void hit(int hp, int iVelocity) {
+        if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 2;
         currentHP += hp;
         isJumping = false;
         isDisabled = true;
@@ -38,21 +42,33 @@ public class Character {
             isDisabled = true;
             isLost = true;
         } else {
-            superProgress -= hp/3;
-            opponent.superProgress -= hp;
+            if (isSupering != Supers.ANDREW_SUPER) {
+                superProgress -= hp/3;
+            }
+            if (opponent.isSupering != Supers.ANDREW_SUPER) {
+                opponent.superProgress -= hp;
+            }
             if (superProgress >= 100) {
-                isSupering = true;
-                superProgress = 0;
+                isSupering = SUPER;
+                if (isSupering == Supers.ANDREW_SUPER) {
+                    superProgress = 100;
+                } else {
+                    superProgress = 0;
+                }
             }
             if (opponent.superProgress >= 100) {
-                opponent.isSupering = true;
-                opponent.superProgress = 0;
+                opponent.isSupering = opponent.SUPER;
+                if (opponent.isSupering == Supers.ANDREW_SUPER) {
+                    opponent.superProgress = 100;
+                } else {
+                    opponent.superProgress = 0;
+                }
             }
         }
     }
 
     public void move(int direction) {
-        if (!isShooting) {
+        if (!(isShooting && isSupering != Supers.ANDREW_SUPER)) {
             x += velocity*direction;
             if (x < 0) {
                 x = 0;
@@ -75,9 +91,9 @@ public class Character {
                 y = 200;
             }
         } else if (circularJumping) {
-            y = 200 - (int) (8*Math.sqrt(-Math.pow(yVelocity-10, 2)+100));
+            y = 200 - (int) (8*Math.sqrt(-Math.pow(yVelocity-30, 2)+900));
             yVelocity++;
-            if (yVelocity >= 20) {
+            if (yVelocity >= 60) {
                 circularJumping = false;
                 y = 200;
             }
@@ -95,7 +111,7 @@ public class Character {
     public void jump() {
         if (!isJumping) {
             isJumping = true;
-            yVelocity = 15;    
+            yVelocity = 15;
         }
     }
 
@@ -124,18 +140,23 @@ public class Character {
         if (name.equals("mk")) {
             maxHP = 250;
             velocity = 3;
+            SUPER = Supers.MK_SUPER;
         } else if (name.equals("ryanpog")) {
             maxHP = 175;
             velocity = 7;
+            SUPER = Supers.RYAN_SUPER;
         } else if (name.equals("anita")) {
             maxHP = 125;
             velocity = 7;
+            SUPER = Supers.ANITA_SUPER;
         } else if (name.equals("andrew")) {
             maxHP = 175;
             velocity = 7;
+            SUPER = Supers.ANDREW_SUPER;
         } else if (name.equals("danyal")) {
             maxHP = 175;
             velocity = 5;
+            SUPER = Supers.DON_SUPER;
         }
         currentHP = maxHP;
     }
