@@ -41,7 +41,6 @@ public class App extends JFrame {
     private ArrayList<Character> p1Decoys = new ArrayList<>();
     private ArrayList<Character> p2Decoys = new ArrayList<>();
     private Timer repaintTimer;
-    private Clip clip;
     private Image bgImage;
     private Image ryanpogIMG;
     private Image ryanpogIMGF;
@@ -68,8 +67,6 @@ public class App extends JFrame {
         p1Keys.put(-1, false);
         p2Keys.put(1, false);
         p2Keys.put(-1, false);
-
-        clip = AudioSystem.getClip();
 
         p1 = new Character(p1Name, 100, 200);
         p2 = new Character(p2Name, 600, 200);
@@ -675,6 +672,7 @@ public class App extends JFrame {
 
     public void playSound(String name) {
         try {
+            Clip clip = AudioSystem.getClip();
             clip.open(AudioSystem.getAudioInputStream(getClass().getResource(name + ".wav")));
             clip.start();
             new Thread(new Runnable() {
@@ -718,6 +716,6 @@ public class App extends JFrame {
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("ryanpog", "steph");
+        new App("ryanpog", "deev");
     }
 }
