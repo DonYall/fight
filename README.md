@@ -32,12 +32,12 @@ O: Finger attack
 ### ryanpog
 Speed: 7\
 Health: 175\
-Super: ryanpog turns into a Beyblade. His next collision with his opponent will deal a heavy amount of damage, ramping up based on how much he has been spinning for.
+Super: ryanpog turns into a Beyblade. His next collision with his opponent will deal a heavy amount of damage, ramping up based on how long he has been spinning for.
 
 ### mk
 Speed: 3\
 Health: 250\
-Super: not yet
+Super: While active, mk heals himself after dealing damage to his opponent.
 
 ### andrew
 Speed: 7\
@@ -54,3 +54,8 @@ Super: deev creates many clones of himself and hacks his opponent by reversing t
 
 ### anita
 not yet
+
+### steph
+Speed: 7\
+Health: 125\
+Super: not yet

@@ -1,27 +1,26 @@
 public class Character {
-    Character opponent;
-    String name;
-    int maxHP;
-    int currentHP;
-    double superProgress = 0;
-    private int player;
+    protected Character opponent;
+    protected String name;
+    protected int maxHP;
+    protected int currentHP;
+    protected double superProgress = 0;
     private boolean isJumping;
     private boolean cosJumping;
     private boolean circularJumping;
-    boolean isShooting = false;
-    boolean isFingering = false;
-    boolean isDisabled = false;
-    boolean isLost = false;
-    int isSupering = 0;
+    protected boolean isShooting = false;
+    protected boolean isFingering = false;
+    protected boolean isDisabled = false;
+    protected boolean isLost = false;
+    protected int isSupering = 0;
     private double GRAVITY = 0.7;
     private double yVelocity = 0;
-    int x;
-    int y;
-    double velocity;
-    int hitboxRadius = 35;
+    protected int x;
+    protected int y;
+    protected double velocity;
+    protected int hitboxRadius = 35;
 
     // Super attacks
-    int SUPER;
+    protected int SUPER;
 
     public Character(String name, int x, int y) {
         this.name = name;
@@ -31,18 +30,21 @@ public class Character {
     }
 
     public void hit(int hp, int iVelocity) {
-        if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 2;
+        if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 1.7;
         currentHP += hp;
         isJumping = false;
         circularJumping = false;
         isDisabled = true;
         yVelocity = iVelocity;
         if (currentHP <= 0) {
+            currentHP = 0;
             y = 0;
             GRAVITY = 0.01;
-            isDisabled = true;
             isLost = true;
-        } else {
+        } else if (currentHP > maxHP) {
+            currentHP = maxHP;
+        } else if (hp < 0) {
+            if (opponent.isSupering == Supers.MK_SUPER) opponent.hit(-hp/2, 12);
             if (isSupering == 0) {
                 superProgress -= hp/3;
             }
@@ -155,6 +157,10 @@ public class Character {
         } else if (name.equals("deev ai")) {
             maxHP = 2000;
             velocity = 5 + Math.random()*11;
+        } else if (name.equals("steph")) {
+            maxHP = 125;
+            velocity = 7;
+            SUPER = Supers.STEPH_SUPER;
         }
         currentHP = maxHP;
     }

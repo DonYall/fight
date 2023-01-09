@@ -1,6 +1,8 @@
 import java.util.*;
 import javax.swing.*;
 import javax.swing.Timer;
+import javax.swing.event.MouseInputListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -11,7 +13,7 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 
 public class App extends JFrame {
-    private final double multiplier;
+    private double multiplier = 1.5;
     private Character p1;
     private Character p2;
     private Map<Integer, Boolean> p1Keys = new HashMap<>();
@@ -39,12 +41,35 @@ public class App extends JFrame {
     private ArrayList<Character> p1Decoys = new ArrayList<>();
     private ArrayList<Character> p2Decoys = new ArrayList<>();
     private Timer repaintTimer;
-    public App(String p1Name, String p2Name, double multiplier) throws IOException {
-        this.multiplier = multiplier;
+    private Clip clip;
+    private Image bgImage;
+    private Image ryanpogIMG;
+    private Image ryanpogIMGF;
+    private Image michelleIMG;
+    private Image michelleIMGF;
+    private Image fingerIMG;
+    private Image fingerIMGF;
+    private Image xIMG;
+    private Image[] gunIMG;
+    private Image[] gunIMGF;
+    private BufferedImage bufferedBG;
+    private BufferedImage bufferedRyanPog;
+    private BufferedImage bufferedRyanPogF;
+    private BufferedImage bufferedMichelle;
+    private BufferedImage bufferedMichelleF;
+    private BufferedImage bufferedFinger;
+    private BufferedImage bufferedFingerF;
+    private BufferedImage bufferedGun;
+    private BufferedImage bufferedGunF;
+    private BufferedImage bufferedX;
+
+    public App(String p1Name, String p2Name) throws IOException, LineUnavailableException {
         p1Keys.put(1, false);
         p1Keys.put(-1, false);
         p2Keys.put(1, false);
         p2Keys.put(-1, false);
+
+        clip = AudioSystem.getClip();
 
         p1 = new Character(p1Name, 100, 200);
         p2 = new Character(p2Name, 600, 200);
@@ -52,41 +77,26 @@ public class App extends JFrame {
         p2.opponent = p1;
 
         // Background image
-        BufferedImage bufferedBG = ImageIO.read(getClass().getResource("bg.jpg"));
-        Image bgImage = bufferedBG.getScaledInstance((int) (800*multiplier), (int) (400*multiplier), BufferedImage.SCALE_SMOOTH);
+        bufferedBG = ImageIO.read(getClass().getResource("bg.jpg"));
 
         // Character images
-        BufferedImage bufferedRyanPog = ImageIO.read(getClass().getResource(p1Name + ".png"));
-        Image ryanpogIMG = bufferedRyanPog.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
-
-        BufferedImage bufferedMichelle = ImageIO.read(getClass().getResource(p2Name + ".png"));
-        Image michelleIMG = bufferedMichelle.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
-
-        BufferedImage bufferedRyanPogF = ImageIO.read(getClass().getResource(p1Name + "F.png"));
-        Image ryanpogIMGF = bufferedRyanPogF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
-
-        BufferedImage bufferedMichelleF = ImageIO.read(getClass().getResource(p2Name + "F.png"));
-        Image michelleIMGF = bufferedMichelleF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
-
-        BufferedImage bufferedFinger = ImageIO.read(getClass().getResource("finger.png"));
-        Image fingerIMG = bufferedFinger.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
-
-        BufferedImage bufferedFingerF = ImageIO.read(getClass().getResource("fingerF.png"));
-        Image fingerIMGF = bufferedFingerF.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
+        bufferedRyanPog = ImageIO.read(getClass().getResource(p1Name + ".png"));
+        bufferedMichelle = ImageIO.read(getClass().getResource(p2Name + ".png"));
+        bufferedRyanPogF = ImageIO.read(getClass().getResource(p1Name + "F.png"));
+        bufferedMichelleF = ImageIO.read(getClass().getResource(p2Name + "F.png"));
+        bufferedFinger = ImageIO.read(getClass().getResource("finger.png"));
+        bufferedFingerF = ImageIO.read(getClass().getResource("fingerF.png"));
+        bufferedX = ImageIO.read(getClass().getResource("x.png"));
 
         // Gun (322 x 263) x 13
         // Gun origin: (160, 130)
-        BufferedImage bufferedGun = ImageIO.read(getClass().getResource("gun.png"));
-        BufferedImage bufferedGunF = ImageIO.read(getClass().getResource("gunF.png"));
-        Image[] gunIMG = new Image[13];
-        Image[] gunIMGF = new Image[13];
+        gunIMG = new Image[13];
+        gunIMGF = new Image[13];
+        bufferedGun = ImageIO.read(getClass().getResource("gun.png"));
+        bufferedGunF = ImageIO.read(getClass().getResource("gunF.png"));
 
-        for (int i = 0; i < 13; i++) {
-            gunIMG[i] = bufferedGun.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
-        }
-        for (int i = 12; i >= 0; i--) {
-            gunIMGF[12-i] = bufferedGunF.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
-        }
+        loadImages();
+        setSize((int) (800*multiplier), (int) (400*multiplier));
 
         // Game Panel
         gamePanel = new JPanel() {
@@ -108,6 +118,8 @@ public class App extends JFrame {
                     g2d.translate(-660*multiplier, -217*multiplier);
                 }
                 g2d.drawImage(bgImage, 0, 0, this);
+
+                g2d.drawImage(xIMG, (int) (780*multiplier), 0, null);
 
                 // Draw gun tracer
                 if (gun1Index == 24) {
@@ -184,6 +196,30 @@ public class App extends JFrame {
         };
         InputMap im = gamePanel.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = gamePanel.getActionMap();
+        
+        // General inputs
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0, false), "pressed.plus");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0, false), "pressed.plus");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0, false), "pressed.minus");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UNDERSCORE, 0, false), "pressed.minus");
+
+        // General actions
+        am.put("pressed.plus", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                multiplier += 0.1;
+                loadImages();
+                setSize((int) (800*multiplier), (int) (400*multiplier));
+            }
+        });
+        am.put("pressed.minus", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                multiplier -= 0.1;
+                loadImages();
+                setSize((int) (800*multiplier), (int) (400*multiplier));
+            }
+        });
 
         // Player 1 inputs
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0, false), "pressed.a");
@@ -261,7 +297,7 @@ public class App extends JFrame {
                     p2.isShooting = true;
                     if (p2.isSupering != Supers.ANDREW_SUPER) {
                         p2Keys.put(+1, false);
-                        p2Keys.put(-1, false);    
+                        p2Keys.put(-1, false);
                     }
                 }
             }
@@ -275,9 +311,29 @@ public class App extends JFrame {
             }
         });
 
+        addMouseListener(new MouseInputListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getX() > 780*multiplier && e.getX() < 800*multiplier && e.getY() > 0 && e.getY() < 7.5*multiplier) {
+                    System.exit(0);
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                setLocation(getLocation().x+e.getX(), getLocation().y+e.getY());
+            }
+
+            // Useless required methods
+            public void mouseEntered(MouseEvent e) {}
+            public void mouseExited(MouseEvent e) {}
+            public void mousePressed(MouseEvent e) {}
+            public void mouseReleased(MouseEvent e) {}
+            public void mouseMoved(MouseEvent e) {}
+        });
+
         add(gamePanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize((int) (800*multiplier), (int) (400*multiplier));
         setUndecorated(true);
         setVisible(true);
         repaintTimer = new Timer(0, new ActionListener() {
@@ -348,7 +404,7 @@ public class App extends JFrame {
                                 p1.hit(0, 10);
                                 p1Movement = 0;
                             }
-                        }        
+                        }
                     }
                 }
                 if (p2.isShooting) {
@@ -393,10 +449,10 @@ public class App extends JFrame {
                 // Supers / Player-Player collisions
                 if (p1.isSupering == Supers.RYAN_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                        p2.hit((int)(-p1Velocitator*2), 7);
+                        p2.hit((int)(-p1Velocitator*2.2), 7);
                         // Headbutt
                         if (p2.isSupering == Supers.RYAN_SUPER) {
-                            p1.hit((int)(-p2Velocitator*2), 7);
+                            p1.hit((int)(-p2Velocitator*2.2), 7);
                         } else {
                             p1.hit(0, 7);
                         }
@@ -428,6 +484,7 @@ public class App extends JFrame {
                             }
                         }
                         p1Cutscene = true;
+                        playSound(p1.name);
                         p1.x = 100;
                         p2.x = 600;
                         p1.y = 200;
@@ -441,7 +498,7 @@ public class App extends JFrame {
                 }
                 if (p2.isSupering == Supers.RYAN_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                        p1.hit((int)(-p2Velocitator*2), 7);
+                        p1.hit((int)(-p2Velocitator*2.2), 7);
                         p2.hit(0, 7);
                         p1Movement = 0;
                         p2.isSupering = 0;
@@ -463,6 +520,7 @@ public class App extends JFrame {
                     if (p2.superProgress >= 100) {
                         p2.isSupering = p2.SUPER;
                         p2Cutscene = true;
+                        playSound(p2.name);
                         p1.x = 100;
                         p2.x = 600;
                         p1.y = 200;
@@ -503,7 +561,7 @@ public class App extends JFrame {
 
                 repaint();
                 revalidate();
-                
+
                 long elapsed = System.nanoTime() - start;
                 long wait = 16 - elapsed/1000000;
 
@@ -524,7 +582,7 @@ public class App extends JFrame {
         repaintTimer.start();
     }
 
-    class MoveAction extends AbstractAction {
+    private class MoveAction extends AbstractAction {
         int playerID;
         int direction;
         boolean pressed;
@@ -612,11 +670,54 @@ public class App extends JFrame {
     }
 
     public int randInt(int min, int max) {
-        return((int) (Math.random()*max)+min);
+        return((int) (Math.random()*max + min));
+    }
+
+    public void playSound(String name) {
+        try {
+            clip.open(AudioSystem.getAudioInputStream(getClass().getResource(name + ".wav")));
+            clip.start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (clip.isRunning()) {
+
+                    }
+                    clip.close();
+                }
+            }).start();
+        } catch (NullPointerException e) {
+            System.out.println("no audio file for " + name);
+        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    public void loadImages() {
+        // Background image
+        bgImage = bufferedBG.getScaledInstance((int) (800*multiplier), (int) (400*multiplier), BufferedImage.SCALE_SMOOTH);
+
+        // Character images
+        ryanpogIMG = bufferedRyanPog.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+        michelleIMG = bufferedMichelle.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+        ryanpogIMGF = bufferedRyanPogF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+        michelleIMGF = bufferedMichelleF.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
+        fingerIMG = bufferedFinger.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
+        fingerIMGF = bufferedFingerF.getScaledInstance((int) (20*multiplier), (int) (20*multiplier), BufferedImage.SCALE_SMOOTH);
+        xIMG = bufferedX.getScaledInstance((int) (20*multiplier), (int) (7.5*multiplier), BufferedImage.SCALE_SMOOTH);
+
+        // Gun (322 x 263) x 13
+        // Gun origin: (160, 130)
+        for (int i = 0; i < 13; i++) {
+            gunIMG[i] = bufferedGun.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
+        }
+        for (int i = 12; i >= 0; i--) {
+            gunIMGF[12-i] = bufferedGunF.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
+        }
     }
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("deev", "andrew", 1.7);
+        new App("ryanpog", "steph");
     }
 }

@@ -5,4 +5,5 @@ public abstract class Supers {
     static final int ANDREW_SUPER = 4;
     static final int DON_SUPER = 5;
     static final int DEEV_SUPER = 6;
+    static final int STEPH_SUPER = 7;
 }

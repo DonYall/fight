@@ -1,3 +1,4 @@
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -5,7 +6,7 @@ import java.io.IOException;
 
 public class SelectCharacter extends JFrame {
     private JPanel mainPanel = new JPanel(new FlowLayout());
-    private JLabel characterList = new JLabel("Available characters: ryanpog, andrew, mk");
+    private JLabel characterList = new JLabel("Available characters: ryanpog, andrew, mk, deev, steph");
     private JTextField mainTextField = new JTextField("eg: ryanpog/andrew");
     private JButton okButton = new JButton("OK");
 
@@ -17,9 +18,9 @@ public class SelectCharacter extends JFrame {
             @Override
             public void actionPerformed(ActionEvent arg0) { 
                 try {
-                    new App(mainTextField.getText().split("/")[0], mainTextField.getText().split("/")[1], 1.5);
+                    new App(mainTextField.getText().split("/")[0], mainTextField.getText().split("/")[1]);
                     dispose();
-                } catch (IOException e) {
+                } catch (IOException | LineUnavailableException e) {
                     e.printStackTrace();
                 }               
             }
