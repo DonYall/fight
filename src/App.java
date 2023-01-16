@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 
 public class App extends JFrame {
-    private double multiplier = 1.5;
+    private double multiplier;
     private Character p1;
     private Character p2;
     private Map<Integer, Boolean> p1Keys = new HashMap<>();
@@ -63,6 +63,8 @@ public class App extends JFrame {
     private BufferedImage bufferedX;
 
     public App(String p1Name, String p2Name) throws IOException, LineUnavailableException {
+        multiplier = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 800.0;
+
         p1Keys.put(1, false);
         p1Keys.put(-1, false);
         p2Keys.put(1, false);
@@ -93,7 +95,11 @@ public class App extends JFrame {
         bufferedGunF = ImageIO.read(getClass().getResource("gunF.png"));
 
         loadImages();
-        setSize((int) (800*multiplier), (int) (400*multiplier));
+        //setSize((int) (800*multiplier), (int) (400*multiplier));
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0].setFullScreenWindow(this);
+        setFocusable(true);
+        requestFocusInWindow();
 
         // Game Panel
         gamePanel = new JPanel() {
@@ -115,7 +121,6 @@ public class App extends JFrame {
                     g2d.translate(-660*multiplier, -217*multiplier);
                 }
                 g2d.drawImage(bgImage, 0, 0, this);
-
                 g2d.drawImage(xIMG, (int) (780*multiplier), 0, null);
 
                 // Draw gun tracer
@@ -188,12 +193,24 @@ public class App extends JFrame {
                     g2d.fillRect((int)((800-300-20)*multiplier), (int)(50*multiplier), (int)(p2.superProgress*(3)*multiplier), (int)(10*multiplier));
                 }
 
+                g2d.setColor(Color.WHITE);
+
+                // Usernames
+                g2d.setFont(new Font(Font.DIALOG, Font.PLAIN, (int) (8*multiplier)));
+                g2d.drawString(p1.name, (int) (p1.x*multiplier), (int) (p1.y*multiplier));
+                g2d.drawString(p2.name, (int) (p2.x*multiplier), (int) (p2.y*multiplier));
+
+                // HP
+                g2d.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, (int) (15*multiplier)));
+                g2d.drawString(String.valueOf(p1.currentHP), (int) (23*multiplier), (int) (37.6*multiplier));
+                g2d.drawString(String.valueOf(p2.currentHP), (int) ((800-300-17)*multiplier), (int) (37.5*multiplier));
+
                 g2d.dispose();
             }
         };
         InputMap im = gamePanel.getInputMap(JPanel.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = gamePanel.getActionMap();
-        
+
         // General inputs
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0, false), "pressed.plus");
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0, false), "pressed.plus");
@@ -331,6 +348,7 @@ public class App extends JFrame {
 
         add(gamePanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setIconImage(ImageIO.read(getClass().getResource("ryanpog.png")));
         setUndecorated(true);
         setVisible(true);
         repaintTimer = new Timer(0, new ActionListener() {
@@ -716,6 +734,6 @@ public class App extends JFrame {
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("ryanpog", "deev");
+        new App("andrew", "ryanpog");
     }
 }

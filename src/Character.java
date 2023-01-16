@@ -30,7 +30,7 @@ public class Character {
     }
 
     public void hit(int hp, int iVelocity) {
-        if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 1.7;
+        if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 1.5;
         currentHP += hp;
         isJumping = false;
         circularJumping = false;
@@ -118,7 +118,7 @@ public class Character {
 
     // Circular jump
     public void circularJump() {
-        if (!circularJumping) {
+        if (!circularJumping && !isDisabled) {
             circularJumping = true;
             yVelocity = 0;
         }
