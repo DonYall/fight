@@ -54,7 +54,7 @@ public class Character {
         } else if (currentHP > maxHP) {
             currentHP = maxHP;
         } else if (hp < 0) {
-            if (opponent.isSupering == Supers.MK_SUPER) opponent.hit((int)(-hp/1.5), 12);
+            if (opponent.isSupering == Supers.MK_SUPER) opponent.hit((int)(-hp/1.4), 12);
             if (isSupering == 0) {
                 superProgress -= hp/3;
             }
@@ -82,29 +82,29 @@ public class Character {
         if (isJumping) {
             yVelocity -= GRAVITY;
             y -= (int)yVelocity;
-            if (y >= 200) {
+            if (y >= 250) {
                 isJumping = false;
-                y = 200;
+                y = 250;
             }    
         } else if (cosJumping) {
-            y = 200 - (int) (-50 * (Math.cos(yVelocity/8)) + 50);
+            y = 250 - (int) (-50 * (Math.cos(yVelocity/8)) + 50);
             yVelocity++;
             if (yVelocity >= Math.PI * 16) {
                 cosJumping = false;
-                y = 200;
+                y = 250;
             }
         } else if (circularJumping) {
-            y = 200 - (int) (8*Math.sqrt(-Math.pow(yVelocity-30, 2)+900));
+            y = 250 - (int) (8*Math.sqrt(-Math.pow(yVelocity-30, 2)+900));
             yVelocity++;
             if (yVelocity >= 60) {
                 circularJumping = false;
-                y = 200;
+                y = 250;
             }
         } else if (isDisabled) {
             yVelocity -= 1.2;
             y -= (int)yVelocity;
-            if (y >= 200 && !isLost) {
-                y = 200;
+            if (y >= 250 && !isLost) {
+                y = 250;
                 isDisabled = false;
             }     
         }

@@ -32,6 +32,8 @@ public class App extends JFrame {
     private int gun2Index = 0;
     private int finger1Index = 0;
     private int finger2Index = 0;
+    private int explosion1Index = -1;
+    private int explosion2Index = -1;
     private final JPanel gamePanel;
     private double accelerator = 0.1;
     private double p1Velocitator = 0;
@@ -53,6 +55,7 @@ public class App extends JFrame {
     private Image[] gunIMGF;
     private Image hammerIMG;
     private Image hammerIMGF;
+    private Image[] explosionIMG;
     private BufferedImage bufferedBG;
     private BufferedImage bufferedRyanPog;
     private BufferedImage bufferedRyanPogF;
@@ -65,6 +68,7 @@ public class App extends JFrame {
     private BufferedImage bufferedX;
     private BufferedImage bufferedHammer;
     private BufferedImage bufferedHammerF;
+    private BufferedImage bufferedExplosion;
 
     public App(String p1Name, String p2Name) throws IOException, LineUnavailableException {
         multiplier = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 800.0;
@@ -74,13 +78,13 @@ public class App extends JFrame {
         p2Keys.put(1, false);
         p2Keys.put(-1, false);
 
-        p1 = new Character(p1Name, 100, 200);
-        p2 = new Character(p2Name, 600, 200);
+        p1 = new Character(p1Name, 100, 250);
+        p2 = new Character(p2Name, 600, 250);
         p1.opponent = p2;
         p2.opponent = p1;
 
         // Background image
-        bufferedBG = ImageIO.read(getClass().getResource("bg.jpg"));
+        bufferedBG = ImageIO.read(getClass().getResource("bg1.jpg"));
 
         // Character images
         bufferedRyanPog = ImageIO.read(getClass().getResource(p1Name + ".png"));
@@ -100,8 +104,11 @@ public class App extends JFrame {
         bufferedGun = ImageIO.read(getClass().getResource("gun.png"));
         bufferedGunF = ImageIO.read(getClass().getResource("gunF.png"));
 
+        // Explosion (256 x 251) * 15
+        explosionIMG = new Image[15];
+        bufferedExplosion = ImageIO.read(getClass().getResource("explosion.png"));
+
         loadImages();
-        //setSize((int) (800*multiplier), (int) (400*multiplier));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         //GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0].setFullScreenWindow(this);
         setFocusable(true);
@@ -117,14 +124,14 @@ public class App extends JFrame {
                 g2d.setColor(Color.BLACK.darker());
                 if (p1Cutscene) {
                     p1CutsceneScale += p1CutsceneVelocity;
-                    g2d.translate(68*multiplier, 217*multiplier);
+                    g2d.translate(68*multiplier, 280*multiplier);
                     g2d.scale(p1CutsceneScale, p1CutsceneScale);
-                    g2d.translate(-68*multiplier, -217*multiplier);
+                    g2d.translate(-68*multiplier, -280*multiplier);
                 } else if (p2Cutscene) {
                     p2CutsceneScale += p2CutsceneVelocity;
-                    g2d.translate(660*multiplier, 217*multiplier);
+                    g2d.translate(660*multiplier, 280*multiplier);
                     g2d.scale(p2CutsceneScale, p2CutsceneScale);
-                    g2d.translate(-660*multiplier, -217*multiplier);
+                    g2d.translate(-660*multiplier, -280*multiplier);
                 }
                 g2d.drawImage(bgImage, 0, 0, this);
                 g2d.drawImage(xIMG, (int) (780*multiplier), 0, null);
@@ -179,6 +186,14 @@ public class App extends JFrame {
                     if (p2.isFingering) {
                         g2d.drawImage(fingerIMGF, (int) ((p2.x-10)*multiplier), (int) ((p2.y+40)*multiplier), null);
                     }
+                }
+
+                // Draw explosions
+                if (explosion1Index > -1) {
+                    g2d.drawImage(explosionIMG[explosion1Index], (int) ((p1.x-15)*multiplier), (int) ((p1.y+70)*multiplier), null);
+                }
+                if (explosion2Index > -1) {
+                    g2d.drawImage(explosionIMG[explosion2Index], (int) ((p2.x-15)*multiplier), (int) ((p2.y+70)*multiplier), null);
                 }
 
                 // Show player hitboxes(int) (p1.x*multiplier), (int) (p1.y*multiplier), null
@@ -238,7 +253,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 multiplier += 0.1;
                 loadImages();
-                setSize((int) (800*multiplier), (int) (400*multiplier));
+                setSize((int) (800*multiplier), (int) (450*multiplier));
             }
         });
         am.put("pressed.minus", new AbstractAction() {
@@ -246,7 +261,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 multiplier -= 0.1;
                 loadImages();
-                setSize((int) (800*multiplier), (int) (400*multiplier));
+                setSize((int) (800*multiplier), (int) (450*multiplier));
             }
         });
 
@@ -348,12 +363,8 @@ public class App extends JFrame {
                 }
             }
 
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                setLocation(getLocation().x+e.getX(), getLocation().y+e.getY());
-            }
-
-            // Useless required methods
+            // Useless required methods            
+            public void mouseDragged(MouseEvent e) {}
             public void mouseEntered(MouseEvent e) {}
             public void mouseExited(MouseEvent e) {}
             public void mousePressed(MouseEvent e) {}
@@ -404,6 +415,20 @@ public class App extends JFrame {
                         p2Cutscene = false;
                         p2CutsceneVelocity = 0.2;
                         p2CutsceneScale = 1;
+                    }
+                }
+
+                // Explode
+                if (explosion1Index > -1) {
+                    explosion1Index++;
+                    if (explosion1Index == 15) {
+                        explosion1Index = -1;
+                    }
+                }
+                if (explosion2Index > -1) {
+                    explosion2Index++;
+                    if (explosion2Index == 15) {
+                        explosion2Index = -1;
                     }
                 }
 
@@ -498,7 +523,11 @@ public class App extends JFrame {
                     }
                     p1.superProgress -= 0.15;
                     if (p1.superProgress <= 0) {
-                        if (p1.isSupering == Supers.DON_SUPER) p2.hit(0, 40);
+                        if (p1.isSupering == Supers.DON_SUPER) {
+                            p2.hit(0, 40);
+                            explosion2Index = 0;
+                            playSound("explosion");
+                        }
                         p1.isSupering = 0;
                         if (p1.SUPER == Supers.STEPH_SUPER) p1.velocity = 7;
                         p1Decoys.clear();
@@ -521,8 +550,8 @@ public class App extends JFrame {
                         playSound(p1.name);
                         p1.x = 100;
                         p2.x = 600;
-                        p1.y = 200;
-                        p2.y = 200;
+                        p1.y = 250;
+                        p2.y = 250;
                         p1.isDisabled = true;
                         p2.isDisabled = true;
                         if (p1.isSupering == Supers.RYAN_SUPER) {
@@ -546,7 +575,11 @@ public class App extends JFrame {
                     }
                     p2.superProgress -= 0.15;
                     if (p2.superProgress <= 0) {
-                        if (p2.isSupering == Supers.DON_SUPER) p1.hit(0, 40);
+                        if (p2.isSupering == Supers.DON_SUPER) {
+                            p1.hit(0, 40);
+                            explosion1Index = 0;
+                            playSound("explosion");
+                        }
                         p2.isSupering = 0;
                         if (p2.SUPER == Supers.STEPH_SUPER) p2.velocity = 7;
                         p2Decoys.clear();
@@ -560,8 +593,8 @@ public class App extends JFrame {
                         playSound(p2.name);
                         p1.x = 100;
                         p2.x = 600;
-                        p1.y = 200;
-                        p2.y = 200;
+                        p1.y = 250;
+                        p2.y = 250;
                         p1.isDisabled = true;
                         p2.isDisabled = true;
                         if (p2.isSupering == Supers.RYAN_SUPER) {
@@ -610,7 +643,7 @@ public class App extends JFrame {
                 revalidate();
 
                 long elapsed = System.nanoTime() - start;
-                long wait = 16 - elapsed / 1000000;
+                long wait = 13 - elapsed / 1000000;
 
                 if (wait <= 0) {
                     wait = 5;
@@ -748,7 +781,7 @@ public class App extends JFrame {
 
     public void loadImages() {
         // Background image
-        bgImage = bufferedBG.getScaledInstance((int) (800*multiplier), (int) (400*multiplier), BufferedImage.SCALE_SMOOTH);
+        bgImage = bufferedBG.getScaledInstance((int) (800*multiplier), (int) (450*multiplier), BufferedImage.SCALE_SMOOTH);
 
         // Other images
         ryanpogIMG = bufferedRyanPog.getScaledInstance((int) (70*multiplier), (int) (70*multiplier), BufferedImage.SCALE_SMOOTH);
@@ -769,10 +802,15 @@ public class App extends JFrame {
         for (int i = 12; i >= 0; i--) {
             gunIMGF[12-i] = bufferedGunF.getSubimage(i*322, 0, 322, 263).getScaledInstance((int) (56*multiplier), (int) (46*multiplier), BufferedImage.SCALE_SMOOTH);
         }
+
+        // Explosion (256 x 251) x 15
+        for (int i = 0; i < 15; i++) {
+            explosionIMG[i] = bufferedExplosion.getSubimage(i*256, 0, 256, 251).getScaledInstance((int) (100*multiplier), (int) (100*multiplier), BufferedImage.SCALE_SMOOTH);
+        }
     }
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("andrew", "don");
+        new App("deev", "don");
     }
 }
