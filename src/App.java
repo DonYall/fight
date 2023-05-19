@@ -56,6 +56,7 @@ public class App extends JFrame {
     private Image hammerIMG;
     private Image hammerIMGF;
     private Image[] explosionIMG;
+    private Image yoshiIMG;
     private BufferedImage bufferedBG;
     private BufferedImage bufferedRyanPog;
     private BufferedImage bufferedRyanPogF;
@@ -69,6 +70,7 @@ public class App extends JFrame {
     private BufferedImage bufferedHammer;
     private BufferedImage bufferedHammerF;
     private BufferedImage bufferedExplosion;
+    private BufferedImage bufferedYoshi;
 
     public App(String p1Name, String p2Name) throws IOException, LineUnavailableException {
         multiplier = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 800.0;
@@ -96,6 +98,7 @@ public class App extends JFrame {
         bufferedX = ImageIO.read(getClass().getResource("x.png"));
         bufferedHammer = ImageIO.read(getClass().getResource("hammer.png"));
         bufferedHammerF = ImageIO.read(getClass().getResource("hammerF.png"));
+        bufferedYoshi = ImageIO.read(getClass().getResource("yoshi.png"));
 
         // Gun (322 x 263) x 13
         // Gun origin: (160, 130)
@@ -201,11 +204,11 @@ public class App extends JFrame {
                 // g2d.drawOval((int) ((p2.x)*multiplier), (int) ((p2.y)*multiplier), (int) (2*p2.hitboxRadius*multiplier), (int) (2*p2.hitboxRadius*multiplier));
 
                 // Health bars
-                if (p2.isSupering == Supers.DON_SUPER && p1.currentHP <= p1.bombs*15) {
+                if (p2.isSupering == Supers.DON_SUPER && p1.currentHP <= p1.bombs*13) {
                     g2d.setColor(Color.RED.darker());
                 }
                 g2d.fillRect((int)(20*multiplier),           (int)(20*multiplier), (int)((300*p1.currentHP/p1.maxHP)*multiplier), (int)(25*multiplier));
-                if (p1.isSupering == Supers.DON_SUPER && p2.currentHP <= p2.bombs*15) {
+                if (p1.isSupering == Supers.DON_SUPER && p2.currentHP <= p2.bombs*13) {
                     g2d.setColor(Color.RED.darker());
                 } else {
                     g2d.setColor(Color.BLACK.darker());
@@ -293,7 +296,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (p1.isSupering == Supers.ANDREW_SUPER) {
                     p1.circularJump();
-                } else if (!p1.isShooting && !p1.isDisabled) {
+                } else if (!p1.isShooting && !p1.isDisabled && !p1.circularJumping) {
                     p1.jump();
                 }
             }
@@ -329,7 +332,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (p2.isSupering == Supers.ANDREW_SUPER) {
                     p2.circularJump();
-                } else if (!p2.isShooting && !p2.isDisabled) {
+                } else if (!p2.isShooting && !p2.isDisabled && !p2.circularJumping) {
                     p2.jump();
                 }
             }
@@ -441,7 +444,7 @@ public class App extends JFrame {
                         if (p1.isSupering != Supers.ANDREW_SUPER) p1Movement = 0;
                     } else if (gun1Index == 24) {
                         if (p1.isSupering == Supers.ANDREW_SUPER) {
-                            p2.hit(-10, 12);
+                            p2.hit(-10, 0);
                             p2Movement = 0;
                         } else if (p1Direction == -1) {
                             if ((p1Direction*((p2.x+35)-(p1.x-40+27)) > 0) && p1.y+20+20 > p2.y && p1.y+20+20 < p2.y+70) {
@@ -470,7 +473,7 @@ public class App extends JFrame {
                         if (p2.isSupering != Supers.ANDREW_SUPER) p2Movement = 0;
                     } else if (gun2Index == 24) {
                         if (p2.isSupering == Supers.ANDREW_SUPER) {
-                            p1.hit(-10, 12);
+                            p1.hit(-10, 0);
                             p1Movement = 0;
                         } else if (p2Direction == +1) {
                             if ((p2Direction*((p1.x+35)-(p2.x+50+27)) > 0) && p2.y+20+20 > p1.y && p2.y+20+20 < p1.y+70) {
@@ -531,6 +534,7 @@ public class App extends JFrame {
                         p1.isSupering = 0;
                         if (p1.SUPER == Supers.STEPH_SUPER) p1.velocity = 7;
                         p1Decoys.clear();
+                        p1.yoshis.clear();
                     }
                 } else if (!p1Cutscene && !p2Cutscene && p1.currentHP > 0) {
                     p1.superProgress += 0.05;
@@ -583,6 +587,7 @@ public class App extends JFrame {
                         p2.isSupering = 0;
                         if (p2.SUPER == Supers.STEPH_SUPER) p2.velocity = 7;
                         p2Decoys.clear();
+                        p2.yoshis.clear();
                     }
                 } else if (!p1Cutscene && !p2Cutscene && p2.currentHP > 0) {
                     p2.superProgress += 0.05;
@@ -618,7 +623,7 @@ public class App extends JFrame {
                 }
                 if (p1.isSupering == Supers.STEPH_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius && !p2.isDisabled) {
-                        p2.hit(-20, 40);
+                        p2.hit(-15, 30);
                     }
                 }
                 if (p2.isFingering) {
@@ -635,7 +640,7 @@ public class App extends JFrame {
                 }
                 if (p2.isSupering == Supers.STEPH_SUPER) {
                     if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius && !p1.isDisabled) {
-                        p1.hit(-20, 40);
+                        p1.hit(-15, 30);
                     }
                 }
 
@@ -738,11 +743,11 @@ public class App extends JFrame {
             if (p.isSupering == Supers.DEEV_SUPER) {
                 if (p == p1) {
                     for (Character c : p1Decoys) {
-                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null); 
+                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null);
                     }
                 } else {
                     for (Character c : p2Decoys) {
-                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null); 
+                        g2d.drawImage(i, (int) (c.x*multiplier), (int) (c.y*multiplier), null);
                     }
                 }
             } else if (p.isSupering == Supers.STEPH_SUPER) {
@@ -750,6 +755,27 @@ public class App extends JFrame {
                     g2d.drawImage(hammerIMG, (int) ((p.x-30)*multiplier), (int) ((p.y+20)*multiplier), null);
                 } else {
                     g2d.drawImage(hammerIMGF, (int) ((p.x+50)*multiplier), (int) ((p.y+20)*multiplier), null);
+                }
+            } else if (p.isSupering == Supers.JOSEPH_SUPER) {
+                ArrayList<Character> yoshisToRemove = new ArrayList<>();
+                for (Character c : p.yoshis) {
+                    if (c.y == 250) {
+                        yoshisToRemove.add(c);
+                        continue;
+                    }
+                    if (c.x + 24 > p.opponent.x && c.x < p.opponent.x + 70 && p.opponent.y - c.y < 175 && c.y != p.y + 70) {
+                        p.opponent.hit(-1, 0);
+                        if (p.opponent.name.equals("ryanpog")) {
+                            p.opponent.isSupering = 0;
+                            p.opponent.superProgress = 0;
+                        }
+                    }
+                    c.move(0);
+                    g2d.drawImage(yoshiIMG, (int) (c.x*multiplier), (int) (c.y*multiplier), null); 
+                }
+
+                for (Character c : yoshisToRemove) {
+                    p.yoshis.remove(c);
                 }
             }
         }
@@ -793,6 +819,7 @@ public class App extends JFrame {
         hammerIMG = bufferedHammer.getScaledInstance((int) (50*multiplier), (int) (50*multiplier), BufferedImage.SCALE_SMOOTH);
         hammerIMGF = bufferedHammerF.getScaledInstance((int) (50*multiplier), (int) (50*multiplier), BufferedImage.SCALE_SMOOTH);
         xIMG = bufferedX.getScaledInstance((int) (20*multiplier), (int) (7.5*multiplier), BufferedImage.SCALE_SMOOTH);
+        yoshiIMG = bufferedYoshi.getScaledInstance((int) (24*multiplier), (int) (28*multiplier), BufferedImage.SCALE_SMOOTH);
 
         // Gun (322 x 263) x 13
         // Gun origin: (160, 130)
@@ -811,6 +838,6 @@ public class App extends JFrame {
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("deev", "don");
+        new App("joseph", "andrew");
     }
 }

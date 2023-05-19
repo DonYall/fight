@@ -37,17 +37,17 @@ Super: ryanpog turns into a Beyblade. His next collision with his opponent will 
 ### mk
 Speed: 3\
 Health: 250\
-Super: While active, mk heals himself for 60% of the damage he deals to his opponent.
+Super: While active, every time mk damages his opponent, he heals for 60% of the damage dealt, and pulls the opponent closer to him.
 
 ### andrew
 Speed: 7\
 Health: 175\
-Super: andrew turns into Soldier 76. He gains aimbot with his gun for a temporary amount of time in which his jump mechanics are upgraded.
+Super: andrew turns into Soldier 76. He gains aimbot with his gun for a temporary amount of time in which his jump mechanics are upgraded and his shots do not deal any knockback.
 
 ### don
 Speed: 6\
 Health: 175\
-Super: While active, every time don touches an enemy by finger or gun, damage is not inflicted, but don attaches a bomb to the enemy. After the ability is over, all bombs attached to the enemy are triggered, dealing 150% of damage which would have been dealt otherwise.
+Super: While active, every time don touches an enemy by finger or gun, damage is not inflicted, but don attaches a bomb to the enemy. After the ability is over, all bombs attached to the enemy are triggered, dealing 130% of damage which would have been dealt otherwise.
 
 ### deev
 Speed: 6\
@@ -60,4 +60,9 @@ not implemented yet
 ### steph
 Speed: 7\
 Health: 125\
-Super: steph gets ahold of a hammer. The hammer deals a heavy amount of damage, but slows steph down in the meanwhile.
+Super: steph wields a hammer. The hammer deals a heavy amount of damage, but slows steph down in the meanwhile.
+
+### joseph
+Speed: 6\
+Health: 150\
+Super: joseph turns into Yoshi. He excretes powerful eggs while double jumping which deal damage.
