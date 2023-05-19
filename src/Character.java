@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Character {
     protected Character opponent;
     protected String name;
@@ -6,21 +8,21 @@ public class Character {
     protected double superProgress = 0;
     private boolean isJumping;
     private boolean cosJumping;
-    private boolean circularJumping;
+    protected boolean circularJumping;
+    private int doubleJumpFloor = 250;
     protected boolean isShooting = false;
     protected boolean isFingering = false;
     protected boolean isDisabled = false;
     protected boolean isLost = false;
     protected int isSupering = 0;
     private double GRAVITY = 0.7;
-    private double yVelocity = 0;
+    protected double yVelocity = 0;
     protected int x;
     protected int y;
     protected double velocity;
     protected int hitboxRadius = 35;
     protected int bombs = 0;
-
-    // Super attacks
+    protected ArrayList<Character> yoshis = new ArrayList<>();
     protected int SUPER;
 
     public Character(String name, int x, int y) {
@@ -31,10 +33,9 @@ public class Character {
     }
 
     public void hit(int hp, int iVelocity) {
-        //if (opponent.isSupering == Supers.ANDREW_SUPER) hp /= 1.3; // andrew nerf
         if (opponent.isSupering == Supers.DON_SUPER) { // don super
             if (iVelocity == 40) {
-                hp = -bombs*15;
+                hp = -bombs*13;
                 bombs = 0;
             } else {
                 bombs++;
@@ -54,7 +55,17 @@ public class Character {
         } else if (currentHP > maxHP) {
             currentHP = maxHP;
         } else if (hp < 0) {
-            if (opponent.isSupering == Supers.MK_SUPER) opponent.hit((int)(-hp/1.4), 12);
+            if (opponent.isSupering == Supers.MK_SUPER) {
+                opponent.currentHP += ((int)(-hp/1.4));
+                if (opponent.currentHP <= 0) {
+                    opponent.currentHP = 0;
+                    opponent.y = 0;
+                    opponent.GRAVITY = 0.01;
+                    opponent.isLost = true;
+                } else if (opponent.currentHP > opponent.maxHP) {
+                    opponent.currentHP = opponent.maxHP;
+                }
+            }
             if (isSupering == 0) {
                 superProgress -= hp/3;
             }
@@ -85,22 +96,31 @@ public class Character {
             if (y >= 250) {
                 isJumping = false;
                 y = 250;
-            }    
+            }
         } else if (cosJumping) {
-            y = 250 - (int) (-50 * (Math.cos(yVelocity/8)) + 50);
             yVelocity++;
-            if (yVelocity >= Math.PI * 16) {
+            y = doubleJumpFloor - (int) (-50 * (Math.cos(yVelocity/8)) + 50);
+            if (y == doubleJumpFloor) {
                 cosJumping = false;
-                y = 250;
+                isJumping = true;
+                yVelocity = 250 - 0.7 * Math.pow(y, 2);
             }
         } else if (circularJumping) {
-            y = 250 - (int) (8*Math.sqrt(-Math.pow(yVelocity-30, 2)+900));
+            y = doubleJumpFloor - (int) (8*Math.sqrt(-Math.pow(yVelocity-30, 2)+900));
             yVelocity++;
             if (yVelocity >= 60) {
                 circularJumping = false;
                 y = 250;
             }
         } else if (isDisabled) {
+            if (opponent.isSupering == Supers.MK_SUPER) {
+                try {
+                    int ddirection = (opponent.x - x) / (Math.abs(opponent.x - x));
+                    x += 6*ddirection;    
+                } catch (ArithmeticException e) { // Division by 0
+                    // do nothing lol
+                }
+            }
             yVelocity -= 1.2;
             y -= (int)yVelocity;
             if (y >= 250 && !isLost) {
@@ -115,12 +135,16 @@ public class Character {
         if (!isJumping) {
             isJumping = true;
             yVelocity = 15;
+        } else if (isSupering == Supers.JOSEPH_SUPER) {
+            doubleJumpFloor = y;
+            circularJump();
         }
     }
 
     // Sinusoidal jump
     public void sinusoidalJump() {
         if (!cosJumping) {
+            doubleJumpFloor = y;
             cosJumping = true;
             yVelocity = 0;    
         }
@@ -129,7 +153,11 @@ public class Character {
     // Circular jump
     public void circularJump() {
         if (!circularJumping && !isDisabled) {
+            yoshis.add(new Character("yoshi", x+23, y+70));
+            yoshis.get(yoshis.size()-1).circularJumping = true;
+            yoshis.get(yoshis.size()-1).yVelocity = 30;
             circularJumping = true;
+            isJumping = false;
             yVelocity = 0;
         }
     }
@@ -142,7 +170,7 @@ public class Character {
     public void init() {
         if (name.equals("mk")) {
             maxHP = 250;
-            velocity = 3;
+            velocity = 4;
             SUPER = Supers.MK_SUPER;
         } else if (name.equals("ryanpog")) {
             maxHP = 175;
@@ -171,11 +199,15 @@ public class Character {
             maxHP = 125;
             velocity = 7;
             SUPER = Supers.STEPH_SUPER;
+        } else if (name.equals("joseph")) {
+            maxHP = 150;
+            velocity = 6;
+            SUPER = Supers.JOSEPH_SUPER;
         } else {
             maxHP = 700;
             velocity = 5;
             name += " (bro is cheating)";
-            SUPER = 10;
+            SUPER = 100;
         }
         currentHP = maxHP;
     }
