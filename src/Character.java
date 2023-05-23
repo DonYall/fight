@@ -82,7 +82,7 @@ public class Character {
     }
 
     public void move(int direction) {
-        if (!(isShooting && isSupering != Supers.ANDREW_SUPER)) {
+        if (!(isShooting && isSupering != Supers.ANDREW_SUPER && isSupering != Supers.KAIRO_SUPER)) {
             x += velocity*direction;
             if (x < 0) {
                 x = 0;
@@ -135,6 +135,7 @@ public class Character {
         if (!isJumping) {
             isJumping = true;
             yVelocity = 15;
+            if (isSupering == Supers.ETHAN_SUPER) yVelocity = 7;
         } else if (isSupering == Supers.JOSEPH_SUPER) {
             doubleJumpFloor = y;
             circularJump();
@@ -203,6 +204,14 @@ public class Character {
             maxHP = 150;
             velocity = 6;
             SUPER = Supers.JOSEPH_SUPER;
+        } else if (name.equals("ethan")) {
+            maxHP = 175;
+            velocity = 5;
+            SUPER = Supers.ETHAN_SUPER;
+        } else if (name.equals("kairo")) {
+            maxHP = 125;
+            velocity = 7;
+            SUPER = Supers.KAIRO_SUPER;
         } else {
             maxHP = 700;
             velocity = 5;

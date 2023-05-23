@@ -296,7 +296,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (p1.isSupering == Supers.ANDREW_SUPER) {
                     p1.circularJump();
-                } else if (!p1.isShooting && !p1.isDisabled && !p1.circularJumping) {
+                } else if (!(p1.isShooting && p1.isSupering != Supers.KAIRO_SUPER) && !p1.isDisabled && !p1.circularJumping) {
                     p1.jump();
                 }
             }
@@ -306,7 +306,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (!p1.isShooting && !p1.isDisabled) {
                     p1.isShooting = true;
-                    if (p1.isSupering != Supers.ANDREW_SUPER) {
+                    if (p1.isSupering != Supers.ANDREW_SUPER && p1.isSupering != Supers.KAIRO_SUPER) {
                         p1Keys.put(+1, false);
                         p1Keys.put(-1, false);    
                     }
@@ -332,7 +332,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (p2.isSupering == Supers.ANDREW_SUPER) {
                     p2.circularJump();
-                } else if (!p2.isShooting && !p2.isDisabled && !p2.circularJumping) {
+                } else if (!(p2.isShooting && p2.isSupering != Supers.KAIRO_SUPER) && !p2.isDisabled && !p2.circularJumping) {
                     p2.jump();
                 }
             }
@@ -342,7 +342,7 @@ public class App extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 if (!p2.isShooting && !p2.isDisabled) {
                     p2.isShooting = true;
-                    if (p2.isSupering != Supers.ANDREW_SUPER) {
+                    if (p2.isSupering != Supers.ANDREW_SUPER && p2.isSupering != Supers.KAIRO_SUPER) {
                         p2Keys.put(+1, false);
                         p2Keys.put(-1, false);
                     }
@@ -441,7 +441,7 @@ public class App extends JFrame {
                     if (gun1Index == 39) {
                         gun1Index = 0;
                         p1.isShooting = false;
-                        if (p1.isSupering != Supers.ANDREW_SUPER) p1Movement = 0;
+                        if (p1.isSupering != Supers.ANDREW_SUPER && p1.isSupering != Supers.KAIRO_SUPER) p1Movement = 0;
                     } else if (gun1Index == 24) {
                         if (p1.isSupering == Supers.ANDREW_SUPER) {
                             p2.hit(-10, 0);
@@ -470,7 +470,7 @@ public class App extends JFrame {
                     if (gun2Index == 39) {
                         gun2Index = 0;
                         p2.isShooting = false;
-                        if (p2.isSupering != Supers.ANDREW_SUPER) p2Movement = 0;
+                        if (p2.isSupering != Supers.ANDREW_SUPER && p2.isSupering != Supers.KAIRO_SUPER) p2Movement = 0;
                     } else if (gun2Index == 24) {
                         if (p2.isSupering == Supers.ANDREW_SUPER) {
                             p1.hit(-10, 0);
@@ -533,6 +533,7 @@ public class App extends JFrame {
                         }
                         p1.isSupering = 0;
                         if (p1.SUPER == Supers.STEPH_SUPER) p1.velocity = 7;
+                        if (p1.SUPER == Supers.ETHAN_SUPER) p1.velocity = 5;
                         p1Decoys.clear();
                         p1.yoshis.clear();
                     }
@@ -541,9 +542,11 @@ public class App extends JFrame {
                     if (p1.superProgress >= 100) {
                         p1.isSupering = p1.SUPER;
                         if (p1.SUPER == Supers.STEPH_SUPER) p1.velocity = 4;
+                        if (p1.SUPER == Supers.ETHAN_SUPER) p1.velocity = 2.5;
                         if (p2.isSupering == 0 && p2.superProgress >= 99.95) {
                             p2.isSupering = p2.SUPER;
                             if (p2.SUPER == Supers.STEPH_SUPER) p2.velocity = 4;
+                            if (p2.SUPER == Supers.ETHAN_SUPER) p2.velocity = 2.5;
                             if (p2.isSupering == Supers.RYAN_SUPER) {
                                 p2.superProgress = 0;
                             } else {
@@ -586,6 +589,7 @@ public class App extends JFrame {
                         }
                         p2.isSupering = 0;
                         if (p2.SUPER == Supers.STEPH_SUPER) p2.velocity = 7;
+                        if (p2.SUPER == Supers.ETHAN_SUPER) p2.velocity = 5;
                         p2Decoys.clear();
                         p2.yoshis.clear();
                     }
@@ -593,7 +597,7 @@ public class App extends JFrame {
                     p2.superProgress += 0.05;
                     if (p2.superProgress >= 100) {
                         p2.isSupering = p2.SUPER;
-                        if (p2.SUPER == Supers.STEPH_SUPER) p2.velocity = 4;
+                        if (p2.SUPER == Supers.STEPH_SUPER || p2.SUPER == Supers.ETHAN_SUPER) p2.velocity = 4;
                         p2Cutscene = true;
                         playSound(p2.name);
                         p1.x = 100;
@@ -613,8 +617,19 @@ public class App extends JFrame {
                     finger1Index++;
                     if (finger1Index == 1) {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                            p2.hit(-10, 7);
-                            p2Movement = 0;
+                            if (p1.isSupering == Supers.ETHAN_SUPER) {
+                                p2.hit(-p2.currentHP+1, 7);
+                                p2Movement = 0;
+                                p1Movement = 0;
+                                p2.isSupering = 0;
+                                p2.superProgress = 99.9;
+                                p1.isSupering = 0;
+                                p1.superProgress = 0;
+                                p1.velocity = 5;
+                            } else {
+                                p2.hit(-10, 7);
+                                p2Movement = 0;    
+                            }
                         } else if (p2.isSupering == Supers.DEEV_SUPER) {
                             p1.hit(0, 10);
                             p1Movement = 0;
@@ -630,8 +645,19 @@ public class App extends JFrame {
                     finger2Index++;
                     if (finger2Index == 1) {
                         if (Math.sqrt(Math.pow(p1.x-p2.x, 2) + Math.pow(p1.y-p2.y, 2)) <= p1.hitboxRadius + p2.hitboxRadius) {
-                            p1.hit(-10, 7);
-                            p1Movement = 0;
+                            if (p2.isSupering == Supers.ETHAN_SUPER) {
+                                p1.hit(-p1.currentHP+1, 7);
+                                p2Movement = 0;
+                                p1Movement = 0;
+                                p2.isSupering = 0;
+                                p2.superProgress = 0;
+                                p1.isSupering = 0;
+                                p1.superProgress = 99.9;
+                                p2.velocity = 5;
+                            } else {
+                                p1.hit(-10, 7);
+                                p1Movement = 0;    
+                            }
                         } else if (p1.isSupering == Supers.DEEV_SUPER) {
                             p2.hit(0, 10);
                             p2Movement = 0;
@@ -682,19 +708,19 @@ public class App extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (pressed) {
                 if (playerID == 1) {
-                    if ((p1.isShooting && p1.isSupering != Supers.ANDREW_SUPER) || (p1.isDisabled && p2.isSupering != Supers.STEPH_SUPER)) return;
+                    if ((p1.isShooting && p1.isSupering != Supers.ANDREW_SUPER && p1.isSupering != Supers.KAIRO_SUPER) || (p1.isDisabled && p2.isSupering != Supers.STEPH_SUPER)) return;
                     p1Movement = direction;
                     p1Direction = direction;
                     p1Keys.put(direction, true);
                 } else {
-                    if ((p2.isShooting && p2.isSupering != Supers.ANDREW_SUPER) || (p2.isDisabled && p1.isSupering != Supers.STEPH_SUPER)) return;
+                    if ((p2.isShooting && p2.isSupering != Supers.ANDREW_SUPER && p2.isSupering != Supers.KAIRO_SUPER) || (p2.isDisabled && p1.isSupering != Supers.STEPH_SUPER)) return;
                     p2Movement = direction;
                     p2Direction = direction;
                     p2Keys.put(direction, true);
                 }
             } else {
                 if (playerID == 1) {
-                    if ((p1.isShooting && p1.isSupering != Supers.ANDREW_SUPER) || (p1.isDisabled && p2.isSupering != Supers.STEPH_SUPER)) return;
+                    if ((p1.isShooting && p1.isSupering != Supers.ANDREW_SUPER && p1.isSupering != Supers.KAIRO_SUPER) || (p1.isDisabled && p2.isSupering != Supers.STEPH_SUPER)) return;
                     p1Keys.put(direction, false);
                     if (!p1Keys.get(-direction)) {
                         p1Movement = 0;
@@ -702,7 +728,7 @@ public class App extends JFrame {
                         p1Movement = -direction;
                     }
                 } else {
-                    if ((p2.isShooting && p2.isSupering != Supers.ANDREW_SUPER) || (p2.isDisabled && p1.isSupering != Supers.STEPH_SUPER)) return;
+                    if ((p2.isShooting && p2.isSupering != Supers.ANDREW_SUPER && p2.isSupering != Supers.KAIRO_SUPER) || (p2.isDisabled && p1.isSupering != Supers.STEPH_SUPER)) return;
                     p2Keys.put(direction, false);
                     if (!p2Keys.get(-direction)) {
                         p2Movement = 0;
@@ -764,7 +790,7 @@ public class App extends JFrame {
                         continue;
                     }
                     if (c.x + 24 > p.opponent.x && c.x < p.opponent.x + 70 && p.opponent.y - c.y < 175 && c.y != p.y + 70) {
-                        p.opponent.hit(-1, 0);
+                        p.opponent.hit(-3, 0);
                         if (p.opponent.name.equals("ryanpog")) {
                             p.opponent.isSupering = 0;
                             p.opponent.superProgress = 0;
@@ -838,6 +864,6 @@ public class App extends JFrame {
 
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("joseph", "andrew");
+        new App("ryanpog", "kairo");
     }
 }

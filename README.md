@@ -47,7 +47,7 @@ Super: andrew turns into Soldier 76. He gains aimbot with his gun for a temporar
 ### don
 Speed: 6\
 Health: 175\
-Super: While active, every time don touches an enemy by finger or gun, damage is not inflicted, but don attaches a bomb to the enemy. After the ability is over, all bombs attached to the enemy are triggered, dealing 130% of damage which would have been dealt otherwise.
+Super: While active, every time don touches an enemy by finger or gun, damage is not inflicted, but don attaches a bomb to the enemy. After the ability is over, all bombs attached to the enemy are triggered, dealing 130% of the damage which would have been dealt otherwise.
 
 ### deev
 Speed: 6\
@@ -60,9 +60,19 @@ not implemented yet
 ### steph
 Speed: 7\
 Health: 125\
-Super: steph wields a hammer. The hammer deals a heavy amount of damage, but slows steph down in the meanwhile.
+Super: steph wields a hammer. The hammer deals a heavy amount of damage, but slows steph down.
 
 ### joseph
 Speed: 6\
 Health: 150\
-Super: joseph turns into Yoshi. He excretes powerful eggs while double jumping which deal damage.
+Super: joseph turns into Yoshi. He gains the ability to double jump and excretes powerful eggs which deal damage on collision.
+
+### ethan
+Speed: 7\
+Health: 125\
+Super: Ethan turns into One Punch Man. His speed and jump stats are drastically decreased, but his melee attacks will leave his opponent at 1hp. After using his empowered melee attack, his opponent immediately charges up their super.
+
+### kairo
+Speed: 7\
+Health: 125\
+Super: Kairo goes Gung Ho and gains the ability to shoot while moving, jumping, or fingering.
