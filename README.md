@@ -35,24 +35,24 @@ Health: 175\
 Super: ryanpog turns into a Beyblade. His next collision with his opponent will deal a heavy amount of damage, ramping up based on how long he has been spinning for.
 
 ### mk
-Speed: 3\
+Speed: 4\
 Health: 250\
-Super: While active, every time mk damages his opponent, he heals for 60% of the damage dealt, and pulls the opponent closer to him.
+Super: While active, every time mk damages his opponent, he heals for 60% of the damage dealt and pulls his opponent closer to him.
 
 ### andrew
 Speed: 7\
 Health: 175\
-Super: andrew turns into Soldier 76. He gains aimbot with his gun for a temporary amount of time in which his jump mechanics are upgraded and his shots do not deal any knockback.
+Super: andrew turns into Soldier 76. He gains aimbot with his gun for a limited amount of time in which his jump mechanics are upgraded but his shots do not deal any knockback.
 
 ### don
 Speed: 6\
-Health: 175\
+Health: 150\
 Super: While active, every time don touches an enemy by finger or gun, damage is not inflicted, but don attaches a bomb to the enemy. After the ability is over, all bombs attached to the enemy are triggered, dealing 130% of the damage which would have been dealt otherwise.
 
 ### deev
 Speed: 6\
-Health: 175\
-Super: deev creates many clones of himself and hacks his opponent by reversing their controls and randomizing their direction. While his opponent is hacked, his gun is not visible when fired.
+Health: 150\
+Super: deev creates many clones of himself and hacks his opponent by reversing their controls and randomizing their gunshots. While his opponent is hacked, deev's gun is not visible when fired.
 
 ### anita
 not implemented yet
@@ -60,7 +60,7 @@ not implemented yet
 ### steph
 Speed: 7\
 Health: 125\
-Super: steph wields a hammer. The hammer deals a heavy amount of damage, but slows steph down.
+Super: steph wields a hammer. The hammer deals damage based on her opponent's max health, but slows steph down.
 
 ### joseph
 Speed: 6\
@@ -69,10 +69,11 @@ Super: joseph turns into Yoshi. He gains the ability to double jump and excretes
 
 ### ethan
 Speed: 7\
-Health: 125\
-Super: Ethan turns into One Punch Man. His speed and jump stats are drastically decreased, but his melee attacks will leave his opponent at 1hp. After using his empowered melee attack, his opponent immediately charges up their super.
+Health: 175\
+Super: ethan turns into Two Punch Man. His speed and jump stats are drastically decreased, but his melee attacks will leave his opponent at 1 hp. After using his empowered melee attack, his opponent's super will be immediately charged up.
 
 ### kairo
 Speed: 7\
 Health: 125\
-Super: Kairo goes Gung Ho and gains the ability to shoot while moving, jumping, or fingering.
+Passive: kairo has the ability to shoot while moving or jumping.\
+Super: kairo grows legs. 
