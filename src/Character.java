@@ -82,7 +82,7 @@ public class Character {
     }
 
     public void move(int direction) {
-        if (!(isShooting && isSupering != Supers.ANDREW_SUPER && isSupering != Supers.KAIRO_SUPER)) {
+        if (!(isShooting && isSupering != Supers.ANDREW_SUPER && SUPER != Supers.KAIRO_SUPER)) {
             x += velocity*direction;
             if (x < 0) {
                 x = 0;
@@ -116,7 +116,7 @@ public class Character {
             if (opponent.isSupering == Supers.MK_SUPER) {
                 try {
                     int ddirection = (opponent.x - x) / (Math.abs(opponent.x - x));
-                    x += 6*ddirection;    
+                    x += 4*ddirection;    
                 } catch (ArithmeticException e) { // Division by 0
                     // do nothing lol
                 }
@@ -135,7 +135,7 @@ public class Character {
         if (!isJumping) {
             isJumping = true;
             yVelocity = 15;
-            if (isSupering == Supers.ETHAN_SUPER) yVelocity = 7;
+            if (isSupering == Supers.ETHAN_SUPER) yVelocity = 10;
         } else if (isSupering == Supers.JOSEPH_SUPER) {
             doubleJumpFloor = y;
             circularJump();
@@ -190,7 +190,7 @@ public class Character {
             velocity = 5;
             SUPER = Supers.DON_SUPER;
         } else if (name.equals("deev")) {
-            maxHP = 175;
+            maxHP = 150;
             velocity = 6;
             SUPER = Supers.DEEV_SUPER;
         } else if (name.equals("deev ai")) {
@@ -206,7 +206,7 @@ public class Character {
             SUPER = Supers.JOSEPH_SUPER;
         } else if (name.equals("ethan")) {
             maxHP = 175;
-            velocity = 5;
+            velocity = 7;
             SUPER = Supers.ETHAN_SUPER;
         } else if (name.equals("kairo")) {
             maxHP = 125;
