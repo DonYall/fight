@@ -1,8 +1,10 @@
-A local 2D multiplayer fighting game
-
 ## Requirements
 
 Java 8 or higher
+
+## Installation
+
+Please see [releases](https://github.com/DonYall/fight/releases/)
 
 # How to play
 
