@@ -15,7 +15,7 @@ You may choose the same character for both players by typing something like 'rya
 
 ### Player 1
 W: Jump\
-A: Move left\\
+A: Move left\
 D: Move right\
 G: Shoot gun\
 T: Finger attack
