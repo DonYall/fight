@@ -7,4 +7,7 @@ public abstract class Supers {
     static final int DEEV_SUPER = 6;
     static final int STEPH_SUPER = 7;
     static final int JOSEPH_SUPER = 8;
+    static final int ETHAN_SUPER = 9;
+    static final int KAIRO_SUPER = 10;
+    static final int KATIE_SUPER = 11;
 }

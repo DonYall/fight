@@ -22,6 +22,7 @@ public class Character {
     protected double velocity;
     protected int hitboxRadius = 35;
     protected int bombs = 0;
+    protected int shotsFired = 0;
     protected ArrayList<Character> yoshis = new ArrayList<>();
     protected int SUPER;
 
@@ -33,7 +34,13 @@ public class Character {
     }
 
     public void hit(int hp, int iVelocity) {
-        if (opponent.isSupering == Supers.DON_SUPER) { // don super
+        if (opponent.isSupering == Supers.ETHAN_SUPER && currentHP + hp != 1) hp = 0;
+        if (opponent.SUPER == Supers.KATIE_SUPER && opponent.shotsFired == 3) {
+            hp *= 1.3;
+            opponent.shotsFired = 0;
+            if (opponent.isSupering == Supers.KATIE_SUPER) hp *= 1.3;
+        }
+        if (opponent.isSupering == Supers.DON_SUPER) {
             if (iVelocity == 40) {
                 hp = -bombs*13;
                 bombs = 0;
@@ -56,7 +63,7 @@ public class Character {
             currentHP = maxHP;
         } else if (hp < 0) {
             if (opponent.isSupering == Supers.MK_SUPER) {
-                opponent.currentHP += ((int)(-hp/1.4));
+                opponent.currentHP += ((int)(-hp*0.6));
                 if (opponent.currentHP <= 0) {
                     opponent.currentHP = 0;
                     opponent.y = 0;
@@ -82,7 +89,7 @@ public class Character {
     }
 
     public void move(int direction) {
-        if (!(isShooting && isSupering != Supers.ANDREW_SUPER)) {
+        if (!(isShooting && isSupering != Supers.ANDREW_SUPER && SUPER != Supers.KAIRO_SUPER)) {
             x += velocity*direction;
             if (x < 0) {
                 x = 0;
@@ -116,7 +123,15 @@ public class Character {
             if (opponent.isSupering == Supers.MK_SUPER) {
                 try {
                     int ddirection = (opponent.x - x) / (Math.abs(opponent.x - x));
-                    x += 6*ddirection;    
+                    x += 4*ddirection;    
+                } catch (ArithmeticException e) { // Division by 0
+                    // do nothing lol
+                }
+            } else if (opponent.SUPER == Supers.KATIE_SUPER && opponent.shotsFired == 0) {
+                try {
+                    int ddirection = (opponent.x - x) / (Math.abs(opponent.x - x));
+                    if (opponent.isSupering == Supers.KATIE_SUPER) ddirection *= 2;
+                    x += -4*ddirection;    
                 } catch (ArithmeticException e) { // Division by 0
                     // do nothing lol
                 }
@@ -135,6 +150,7 @@ public class Character {
         if (!isJumping) {
             isJumping = true;
             yVelocity = 15;
+            if (isSupering == Supers.ETHAN_SUPER) yVelocity = 10;
         } else if (isSupering == Supers.JOSEPH_SUPER) {
             doubleJumpFloor = y;
             circularJump();
@@ -146,7 +162,7 @@ public class Character {
         if (!cosJumping) {
             doubleJumpFloor = y;
             cosJumping = true;
-            yVelocity = 0;    
+            yVelocity = 0;
         }
     }
 
@@ -173,7 +189,7 @@ public class Character {
             velocity = 4;
             SUPER = Supers.MK_SUPER;
         } else if (name.equals("ryanpog")) {
-            maxHP = 175;
+            maxHP = 150;
             velocity = 7;
             SUPER = Supers.RYAN_SUPER;
         } else if (name.equals("anita")) {
@@ -181,7 +197,7 @@ public class Character {
             velocity = 7;
             SUPER = Supers.ANITA_SUPER;
         } else if (name.equals("andrew")) {
-            maxHP = 175;
+            maxHP = 130;
             velocity = 7;
             SUPER = Supers.ANDREW_SUPER;
         } else if (name.equals("don")) {
@@ -189,7 +205,7 @@ public class Character {
             velocity = 5;
             SUPER = Supers.DON_SUPER;
         } else if (name.equals("deev")) {
-            maxHP = 175;
+            maxHP = 150;
             velocity = 6;
             SUPER = Supers.DEEV_SUPER;
         } else if (name.equals("deev ai")) {
@@ -203,6 +219,18 @@ public class Character {
             maxHP = 150;
             velocity = 6;
             SUPER = Supers.JOSEPH_SUPER;
+        } else if (name.equals("ethan")) {
+            maxHP = 175;
+            velocity = 7;
+            SUPER = Supers.ETHAN_SUPER;
+        } else if (name.equals("kairo")) {
+            maxHP = 125;
+            velocity = 7;
+            SUPER = Supers.KAIRO_SUPER;
+        } else if (name.equals("katie")) {
+            maxHP = 125;
+            velocity = 5;
+            SUPER = Supers.KATIE_SUPER;
         } else {
             maxHP = 700;
             velocity = 5;
