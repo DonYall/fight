@@ -55,9 +55,6 @@ Speed: 6\
 Health: 150\
 Super: deev creates many clones of himself and hacks his opponent by reversing their controls and randomizing their gunshots. While his opponent is hacked, deev's gun is not visible when fired.
 
-### anita
-not implemented yet
-
 ### steph
 Speed: 7\
 Health: 125\
