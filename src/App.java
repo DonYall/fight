@@ -7,12 +7,20 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.io.*;
+import java.net.Socket;
 import java.awt.image.*;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 
 public class App extends JFrame {
+    private ClientSideConnection csc;
+    private HashMap<Integer, String> moveTranslator = new HashMap<>();
+    private HashMap<String, Integer> reverseMoveTranslator = new HashMap<>();
+    private boolean real = true;
+    private boolean isPaused = true;
+    private int gameID = 0;
+    private int playerID = 0;
     private double multiplier;
     private Character p1;
     private Character p2;
@@ -73,6 +81,48 @@ public class App extends JFrame {
     private BufferedImage bufferedYoshi;
 
     public App(String p1Name, String p2Name) throws IOException, LineUnavailableException {
+        moveTranslator.put(1, "pressed.w");
+        moveTranslator.put(2, "pressed.a");
+        moveTranslator.put(3, "pressed.d");
+        moveTranslator.put(4, "pressed.g");
+        moveTranslator.put(5, "pressed.t");
+        moveTranslator.put(-1, "released.w");
+        moveTranslator.put(-2, "released.a");
+        moveTranslator.put(-3, "released.d");
+        moveTranslator.put(-4, "released.g");
+        moveTranslator.put(-5, "released.t");
+        moveTranslator.put(6, "pressed.up");
+        moveTranslator.put(7, "pressed.left");
+        moveTranslator.put(8, "pressed.right");
+        moveTranslator.put(9, "pressed.l");
+        moveTranslator.put(10, "pressed.o");
+        moveTranslator.put(-6, "released.up");
+        moveTranslator.put(-7, "released.left");
+        moveTranslator.put(-8, "released.right");
+        moveTranslator.put(-9, "released.l");
+        moveTranslator.put(-10, "released.o");
+
+        reverseMoveTranslator.put("pressed.w", 1);
+        reverseMoveTranslator.put("pressed.a", 2);
+        reverseMoveTranslator.put("pressed.d", 3);
+        reverseMoveTranslator.put("pressed.g", 4);
+        reverseMoveTranslator.put("pressed.t", 5);
+        reverseMoveTranslator.put("released.w", -1);
+        reverseMoveTranslator.put("released.a", -2);
+        reverseMoveTranslator.put("released.d", -3);
+        reverseMoveTranslator.put("released.g", -4);
+        reverseMoveTranslator.put("released.t", -5);
+        reverseMoveTranslator.put("pressed.up", 6);
+        reverseMoveTranslator.put("pressed.left", 7);
+        reverseMoveTranslator.put("pressed.right", 8);
+        reverseMoveTranslator.put("pressed.l", 9);
+        reverseMoveTranslator.put("pressed.o", 10);
+        reverseMoveTranslator.put("released.up", -6);
+        reverseMoveTranslator.put("released.left", -7);
+        reverseMoveTranslator.put("released.right", -8);
+        reverseMoveTranslator.put("released.l", -9);
+        reverseMoveTranslator.put("released.o", -10);
+
         multiplier = Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 800.0;
 
         p1Keys.put(1, false);
@@ -318,13 +368,18 @@ public class App extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0, false), "pressed.o");
 
         // Player 1 actions
-        am.put("pressed.a", new MoveAction(1, -1, true));
-        am.put("pressed.d", new MoveAction(1, +1, true));
-        am.put("released.a", new MoveAction(1, -1, false));
-        am.put("released.d", new MoveAction(1, +1, false));
+        am.put("pressed.a", new MoveAction(1, -1, true, "pressed.a"));
+        am.put("pressed.d", new MoveAction(1, +1, true, "pressed.d"));
+        am.put("released.a", new MoveAction(1, -1, false, "released.a"));
+        am.put("released.d", new MoveAction(1, +1, false, "released.d"));
         am.put("pressed.w", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 1) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.w"));
+                    } else return;
+                }
                 if (p1.isSupering == Supers.ANDREW_SUPER) {
                     p1.circularJump();
                 } else if (!(p1.isShooting && p1.SUPER != Supers.KAIRO_SUPER) && !p1.isDisabled && !p1.circularJumping) {
@@ -335,6 +390,11 @@ public class App extends JFrame {
         am.put("pressed.g", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 1) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.g"));
+                    } else return;
+                }
                 if (!p1.isShooting && !p1.isDisabled && !(p1Cutscene || p2Cutscene)) {
                     p1.isShooting = true;
                     p1.shotsFired++;
@@ -348,6 +408,11 @@ public class App extends JFrame {
         am.put("pressed.t", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 1) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.t"));
+                    } else return;
+                }
                 if (!p1.isShooting && !p1.isDisabled && !p1.isFingering) {
                     p1.isFingering = true;
                 }
@@ -355,13 +420,18 @@ public class App extends JFrame {
         });
 
         // Player 2 actions
-        am.put("pressed.left", new MoveAction(2, -1, true));
-        am.put("pressed.right", new MoveAction(2, +1, true));
-        am.put("released.left", new MoveAction(2, -1, false));
-        am.put("released.right", new MoveAction(2, +1, false));
+        am.put("pressed.left", new MoveAction(2, -1, true, "pressed.left"));
+        am.put("pressed.right", new MoveAction(2, +1, true, "pressed.right"));
+        am.put("released.left", new MoveAction(2, -1, false, "released.left"));
+        am.put("released.right", new MoveAction(2, +1, false, "released.right"));
         am.put("pressed.up", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 2) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.up"));
+                    } else return;
+                }
                 if (p2.isSupering == Supers.ANDREW_SUPER) {
                     p2.circularJump();
                 } else if (!(p2.isShooting && p2.SUPER != Supers.KAIRO_SUPER) && !p2.isDisabled && !p2.circularJumping) {
@@ -372,6 +442,11 @@ public class App extends JFrame {
         am.put("pressed.l", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 2) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.l"));
+                    } else return;
+                }
                 if (!p2.isShooting && !p2.isDisabled && !(p1Cutscene || p2Cutscene)) {
                     p2.isShooting = true;
                     p2.shotsFired++;
@@ -385,6 +460,11 @@ public class App extends JFrame {
         am.put("pressed.o", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (real) {
+                    if (playerID == 2) {
+                        csc.sendMove(reverseMoveTranslator.get("pressed.o"));
+                    } else return;
+                }
                 if (!p2.isShooting && !p2.isDisabled && !p2.isFingering) {
                     p2.isFingering = true;
                 }
@@ -416,6 +496,9 @@ public class App extends JFrame {
         repaintTimer = new Timer(0, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (isPaused) {
+                    return;
+                }
                 // long start = System.nanoTime();
                 if (!p1Cutscene) {
                     if (p2.isSupering == Supers.DEEV_SUPER) {
@@ -717,7 +800,7 @@ public class App extends JFrame {
                 // }
 
                 try {
-                    Thread.sleep(1000/60);
+                    Thread.sleep(1000/120);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -733,15 +816,22 @@ public class App extends JFrame {
         int playerID;
         int direction;
         boolean pressed;
+        String name;
 
-        public MoveAction(int playerID, int direction, boolean pressed) {
+        public MoveAction(int playerID, int direction, boolean pressed, String name) {
             this.playerID = playerID;
             this.direction = direction;
             this.pressed = pressed;
+            this.name = name;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (real) {
+                if (playerID == App.this.playerID) {
+                    csc.sendMove(reverseMoveTranslator.get(name));
+                } else return;
+            }
             if (pressed) {
                 if (playerID == 1) {
                     if ((p1.isShooting && p1.isSupering != Supers.ANDREW_SUPER && p1.SUPER != Supers.KAIRO_SUPER) || (p1.isDisabled && p2.isSupering != Supers.STEPH_SUPER)) return;
@@ -898,8 +988,86 @@ public class App extends JFrame {
         }
     }
 
+    private class ClientSideConnection {
+        private Socket socket;
+        private DataInputStream dis;
+        private DataOutputStream dos;
+
+        public ClientSideConnection() {
+            try {
+                System.out.println("Creating socket @ 97.108.149.13:420");
+                socket = new Socket("97.108.149.13", 420);
+                dis = new DataInputStream(socket.getInputStream());
+                dos = new DataOutputStream(socket.getOutputStream());
+                gameID = dis.readInt();
+                playerID = dis.readInt();
+                System.out.println("connected as player " + playerID + " on game #" + gameID);
+                if (playerID != 1) { // If player 2, let player 1 know that you joined
+                    isPaused = false;
+                    sendMove(-69);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void sendMove(int move) {
+            try {
+                if (isPaused) return;
+                dos.writeInt(gameID);
+                dos.writeInt(move);
+                dos.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void receiveMove() {
+            int move;
+            try {
+                int gid = dis.readInt();
+                if (gid != gameID) {
+                    System.out.println("could not match " + gid + " with " + gameID);
+                    return;
+                }
+                move = dis.readInt();
+                if (move == -69) {
+                    System.out.println("Player 2 joined");
+                    isPaused = false;
+                    return;
+                }
+                System.out.println("Received move: " + move);
+                real = false;
+                gamePanel.getActionMap().get(moveTranslator.get(move)).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+                real = true;
+                repaint();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+    }
+
+    public void connectToServer() {
+        csc = new ClientSideConnection();
+    }
+
+    public void startReceivingMoves() {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    csc.receiveMove();
+                }
+            }
+        });
+        t.start();
+    }
+
     // this main method only exists so i can test/debug without having to go through the title screen
     public static void main(String[] args) throws Exception {
-        new App("katie", "kairo");
+        App a = new App("katie", "kairo");
+        a.connectToServer();
+        a.startReceivingMoves();
     }
 }

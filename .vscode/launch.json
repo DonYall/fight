@@ -6,6 +6,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "fight_9794c764"
+        },
+        {
+            "type": "java",
+            "name": "GameServer",
+            "request": "launch",
+            "mainClass": "GameServer",
+            "projectName": "fight_9794c764"
+        },
+        {
+            "type": "java",
+            "name": "SelectCharacter",
+            "request": "launch",
+            "mainClass": "SelectCharacter",
+            "projectName": "fight_9794c764"
+        },
+        {
+            "type": "java",
             "name": "Launch App",
             "request": "launch",
             "mainClass": "App",

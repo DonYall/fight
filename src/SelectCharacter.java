@@ -46,7 +46,9 @@ public class SelectCharacter extends JFrame {
                     if (players.size() == 2) {
                         try {
                             dispose();
-                            new App(players.get(0), players.get(1));
+                            App a = new App(players.get(0), players.get(1));
+                            a.connectToServer();
+                            a.startReceivingMoves();
                         } catch (IOException | LineUnavailableException e1) {
                             e1.printStackTrace();
                         }
